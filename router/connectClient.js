@@ -9,7 +9,9 @@ const client = new Client({
 });
 
 client.connect()
-.then(()=> console.log('server connected'))
+.then(()=> {
+    console.log('server connected');
+})
 .catch((err) => {
     console.log('DB connect error!');
     console.log(err);
