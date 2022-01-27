@@ -3,12 +3,13 @@ RUN     apt-get update
 RUN     apt-get -y upgrade 
 RUN     apt-get -y install nodejs
 RUN     apt-get -y install npm
-RUN	    apt-get install -y npm
-RUN     apt-get install git -y
-RUN     mkdir /home/dungeonus
-RUN     git clone https://github.com/cmsggg/stageus-dungeonus /home/dungeonus
-RUN     apt-get install -y postgresql
+RUN     apt-get -y install git 
+RUN     git clone https://github.com/cmsggg/stageus-dungeonus 
+RUN     apt-get -y install postgresql
 RUN     apt-get install postgresql-contrib
-EXPOSE  5432
 RUN     apt-get install -y vim
-WORKDIR /home/dungeonus
+WORKDIR /stageus-dungeonus
+
+#TODO
+#CMD    ["node", "server.js"]
+#포스트그레 볼륨으로 경로바꿔주는거 추가해야함
