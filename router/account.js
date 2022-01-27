@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const path = require("path");
 const { response } = require("../server_sects/server_sect1.js");
-const client = require("./connectClient.js");
+const client = require("../module/connectClient.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule.js");
 
 router.post("/login", (req,res) =>{

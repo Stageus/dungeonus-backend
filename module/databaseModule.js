@@ -1,3 +1,9 @@
+const returnTableFormat = (schemaName, tableName) => {
+    let resSting = "";
+    resSting += schemaName + "." + tableName;
+    return resSting;
+};
+
 const DBInfo = {
     "database" : "dungeonus",
     "schema" : "dungeonus_schema",
@@ -12,11 +18,5 @@ const DBUtil ={
     "loginTable" : returnTableFormat(DBInfo.schema, DBInfo.tables.loginTable),
     "" : "",
 }
-
-const returnTableFormat = (schemaName, tableName) => {
-    const resSting = "";
-    resSting += schemaName + "." + tableName;
-    return resSting;
-};
 
 module.exports = {DBInfo, DBUtil};
