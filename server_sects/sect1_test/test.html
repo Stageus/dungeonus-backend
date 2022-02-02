@@ -8,13 +8,53 @@
 </head>
 <body>
     <h3>login router</h3>
-    <input type="text">
-    <input type="password">
-    <input type="button" value="login" onclick="">
+    <input id="inputId" type="text">
+    <input id="inputPw" type="password">
+    <br>
+    <input type="button" value="test" onclick="test()">
+    <input type="button" value="login" onclick="login()">
+    <input type="button" value="delete" onclick="del()">
 </body>
 <script>
+    const inputId = document.getElementById("inputId");
+    const inputPw = document.getElementById("inputPw");
+
+    const test = ()=>{
+        console.log(inputId.value);
+        console.log(inputPw.value);
+    }
+
     const login = ()=>{
-        
+        fetch("/account/login", {
+                "method": "POST", 
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": inputId.value,
+                    "pw": inputPw.value,
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    };
+
+    const del = ()=>{
+        fetch("/account/", {
+            "method": "DELETE",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": inputId.value,
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
     };
 </script>
 </html>
