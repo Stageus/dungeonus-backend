@@ -4,6 +4,8 @@ const app = express();
 const httpPort = 8000;
 const httpsPort = 8443;
 
+app.use(express.json());
+
 // const options ={
 //        key: fs.readFileSync(path.join(__dirname, "private.pem")),
 // }

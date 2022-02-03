@@ -8,20 +8,36 @@
 </head>
 <body>
     <h3>login router</h3>
-    <input id="inputId" type="text">
-    <input id="inputPw" type="password">
+    <input id="inputId" type="text" placeholder="ID">
+    <input id="inputPw" type="password" placeholder="PW">
+    <input id="inputName" type="text" placeholder="Name">
+    <input id="inputGen" type="number" placeholder="Generation">
+    <br>
+    <input id="inputCurPw" type="password" placeholder="cur PW">
+    <input id="inputAftPw" type="password" placeholder="after PW">
     <br>
     <input type="button" value="test" onclick="test()">
     <input type="button" value="login" onclick="login()">
     <input type="button" value="delete" onclick="del()">
+    <br>
+    <input type="button" value="modify account" onclick="modifyAccount()">
+    <input type="button" value="create account" onclick="createAccount()">
+    <input type="button" value="total profile" onclick="totalProfile()">
+    <input type="button" value="change password" onclick="changePw()">
 </body>
 <script>
     const inputId = document.getElementById("inputId");
     const inputPw = document.getElementById("inputPw");
+    const inputName = document.getElementById("inputName");
+    const inputGen = document.getElementById("inputGen");
+    const inputCurPw = document.getElementById("inputCurPw");
+    const inputAftPw = document.getElementById("inputAftPw");
 
     const test = ()=>{
         console.log(inputId.value);
         console.log(inputPw.value);
+        console.log(inputName.value);
+        console.log(inputGen.value);
     }
 
     const login = ()=>{
@@ -56,5 +72,69 @@
                 console.log(result);
             });
     };
+
+    const modifyAccount = () =>{
+        fetch("/account/", {
+            "method": "PUT",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": inputId.value,
+                    "name": inputName.value,
+                    "generation": inputGen.value,
+                    "course": {},
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    }
+
+    const createAccount = ()=>{
+        fetch("/account/", {
+            "method": "POST",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": inputId.value,
+                    "name": inputName.value,
+                    "generation": inputGen.value,
+                    "pw" : inputPw.value,
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    }
+
+    const totalProfile = ()=>{
+        fetch("/account/total")
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    }
+
+    const changePw = ()=>{
+        fetch("/account/changepw", {
+            "method": "POST",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": inputId.value,
+                    "cur_pw" : inputCurPw.value,
+                    "aft_pw" : inputAftPw.value,
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    }
 </script>
 </html>
