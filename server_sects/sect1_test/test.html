@@ -18,8 +18,9 @@
     <br>
     <input type="button" value="test" onclick="test()">
     <input type="button" value="login" onclick="login()">
-    <input type="button" value="delete" onclick="del()">
+    <input type="button" value="logout" onclick="logout()">
     <br>
+    <input type="button" value="delete" onclick="del()">
     <input type="button" value="modify account" onclick="modifyAccount()">
     <input type="button" value="create account" onclick="createAccount()">
     <input type="button" value="total profile" onclick="totalProfile()">
@@ -56,6 +57,30 @@
                 console.log(result);
             });
     };
+
+    const logout = () =>{
+        fetch("/account/logout", {
+            "method": "POST", 
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    }
+
+    const autoLogin = () => {
+        fetch("/account/autologin", {
+            "method": "GET"})
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    }
 
     const del = ()=>{
         fetch("/account/", {
@@ -136,5 +161,7 @@
                 console.log(result);
             });
     }
+
+    autoLogin();
 </script>
 </html>

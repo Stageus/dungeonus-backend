@@ -1,18 +1,43 @@
 const express = require("express");
 const router = express.Router();
+const app = express();
 const path = require("path");
 const dao = require("../module/DAO.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
-const cookie = require("../server_sects/sect1_test/TESTModule_cookie");
-const session = require("../server_sects/sect1_test/TESTModule_session");
+const session = require('express-session');
+const FileStore = require('session-file-store')(session);
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(cookieParser());
 
+// session & cookie
+app.use(session({ 
+    secret: 'test string', // TODO: change secret string
+    resave: false, 
+    saveUninitialized: true, 
+    store: new FileStore(),
+    cookie: { secure: true, maxAge: 60000 },
+    reapInterval: 100,
+}));
+const cookieConfig = { 
+    httpOnly: true, 
+    maxAge: 60000, 
+    signed: true,
+};
+const cookieKeyName = 'sessionId';
+
+// path
+const loginSuccessPage = "../server_sects/sect1_test/testLoginSuccess.html";
+
+// router
 router.post("/login", (req,res) =>{
     const reqId = req.body.id;
     const reqPw = req.body.pw;
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
-        "session_id" : "empty", // TODO: Create session function
+        "session_id" : "empty",
     };
 
     dao.selectWithId(DBUtil.loginTable, reqId)
@@ -24,9 +49,18 @@ router.post("/login", (req,res) =>{
             if (res_loginSel.rows[0].pw == reqPw) {
                 resultFormat.success = true;
                 
-                // Request cookie
-                session.getSession(req.session);
-                // cookie.getCookie();
+                // Request session & cookie
+                req.session.user = { 
+                    'id' : reqId, 
+                    'pw' : reqPw,
+                };
+                resultFormat.session_id = req.session.id;
+                res.cookie(cookieKeyName, req.session.id);
+                console.log(req.session.id);
+                console.log(req.session.user);
+
+                // TODO: move to login complete page
+                // res.sendFile(path.join(__dirname, loginSuccessPage));
             }
             else {
                 resultFormat.errmsg = "Wrong Password";
@@ -46,8 +80,11 @@ router.post("/logout", (req,res)=>{
         "errmsg" : "empty",
     };
 
-    // TODO: Delete cookies and sessions after check those.
-    
+    // Delete cookies and sessions after check those.
+    req.session.destroy();
+    res.clearCookie(cookieKeyName);
+    resultFormat.success = true;
+
     res.send(resultFormat);
 });
 
@@ -308,4 +345,12 @@ router.post("/changepw", (req,res)=>{
     });
 });
 
-module.exports = router;
+router.get("/autologin", (req, res)=>{
+    console.log(req.cookies);
+    // TODO: using cookie's session id, 
+    // find user info in current login database.
+});
+
+app.use('/', router);
+
+module.exports = app;
