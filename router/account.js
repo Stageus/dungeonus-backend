@@ -3,6 +3,8 @@ const router = express.Router();
 const path = require("path");
 const dao = require("../module/DAO.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
+const cookie = require("../server_sects/sect1_test/TESTModule_cookie");
+const session = require("../server_sects/sect1_test/TESTModule_session");
 
 router.post("/login", (req,res) =>{
     const reqId = req.body.id;
@@ -21,6 +23,10 @@ router.post("/login", (req,res) =>{
         else {
             if (res_loginSel.rows[0].pw == reqPw) {
                 resultFormat.success = true;
+                
+                // Request cookie
+                session.getSession(req.session);
+                // cookie.getCookie();
             }
             else {
                 resultFormat.errmsg = "Wrong Password";
