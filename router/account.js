@@ -4,9 +4,6 @@ const path = require("path");
 const dao = require("../module/DAO.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
 
-const client = require("../module/connectClient.js");
-const { resolveCaa } = require("dns");
-
 router.post("/login", (req,res) =>{
     const reqId = req.body.id;
     const reqPw = req.body.pw;
