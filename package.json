@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/cmsggg/stageus-dungeonus#readme",
   "dependencies": {
+    "connect-mongo": "^4.6.0",
     "cookie-parser": "^1.4.6",
     "express": "^4.17.2",
     "express-session": "^1.17.2",
