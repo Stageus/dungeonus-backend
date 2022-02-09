@@ -4,19 +4,24 @@ const app = express();
 const path = require("path");
 const dao = require("../module/DAO.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
+
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
+const MongoStore = require('connect-mongo');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 
 // session & cookie
-app.use(session({ 
+app.use(session({
     secret: 'test string', // TODO: change secret string
     resave: false, 
     saveUninitialized: true, 
-    store: new FileStore(),
+    // store: new FileStore(),
+    store: MongoStore.create({
+        mongoUrl: 'mongodb+srv://user:00V893GLnF7LrI9p@dungeonus-cluster.2wk2k.mongodb.net/session-store?retryWrites=true&w=majority',
+    }),
     cookie: { secure: true, maxAge: 60000 },
     reapInterval: 100,
 }));
