@@ -1,9 +1,11 @@
 FROM    ubuntu:20.04
+ARG	DEBIAN_FRONTEND=noninteractive
 RUN     apt-get update
 RUN     apt-get -y upgrade 
+RUN	apt-get -y install curl
+RUN	curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN     apt-get -y install nodejs
-RUN     apt-get -y install npm
-RUN     apt-get -y install git 
+RUN     apt-get -y install git
 RUN     git clone https://github.com/cmsggg/stageus-dungeonus 
 RUN     apt-get -y install postgresql
 RUN     apt-get install postgresql-contrib
