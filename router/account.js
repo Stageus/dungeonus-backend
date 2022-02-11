@@ -5,31 +5,31 @@ const path = require("path");
 const dao = require("../module/DAO.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
 
+const MongoStore = require('connect-mongo');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
-const MongoStore = require('connect-mongo');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 
+const mongoStore = MongoStore.create({
+    mongoUrl: 'mongodb+srv://user:00V893GLnF7LrI9p@dungeonus-cluster.2wk2k.mongodb.net/session-store?retryWrites=true&w=majority',
+    autoRemove: 'interval',
+    ttl: 3600,
+});
+
 // session & cookie
-app.use(session({
+const sessionObj = session({
     secret: 'test string', // TODO: change secret string
     resave: false, 
-    saveUninitialized: true, 
+    saveUninitialized: false, 
     // store: new FileStore(),
-    store: MongoStore.create({
-        mongoUrl: 'mongodb+srv://user:00V893GLnF7LrI9p@dungeonus-cluster.2wk2k.mongodb.net/session-store?retryWrites=true&w=majority',
-    }),
-    cookie: { secure: true, maxAge: 60000 },
+    store: mongoStore,
+    cookie: { secure: true,},
     reapInterval: 100,
-}));
-const cookieConfig = { 
-    httpOnly: true, 
-    maxAge: 60000, 
-    signed: true,
-};
+});
+app.use(sessionObj);
 const cookieKeyName = 'sessionId';
 
 // path
@@ -53,7 +53,10 @@ router.post("/login", (req,res) =>{
         else {
             if (res_loginSel.rows[0].pw == reqPw) {
                 resultFormat.success = true;
-                
+
+                // check session is exist
+                mongoStore.
+
                 // Request session & cookie
                 req.session.user = { 
                     'id' : reqId, 
@@ -350,10 +353,21 @@ router.post("/changepw", (req,res)=>{
     });
 });
 
+router.get("/refreshSession", (req,res)=>{
+    mongoStore.touch(req.cookies.sessionId, sessionObj, (err)=>{
+        if(err) console.log(err);
+    });
+
+    res.send({});
+})
+
 router.get("/autologin", (req, res)=>{
-    console.log(req.cookies);
     // TODO: using cookie's session id, 
     // find user info in current login database.
+});
+
+router.get("overlapLogin", (req,res)=>{
+
 });
 
 app.use('/', router);

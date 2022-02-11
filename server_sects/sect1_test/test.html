@@ -19,6 +19,7 @@
     <input type="button" value="test" onclick="test()">
     <input type="button" value="login" onclick="login()">
     <input type="button" value="logout" onclick="logout()">
+    <input type="button" value="refresh session" onclick="refreshSession()">
     <br>
     <input type="button" value="delete" onclick="del()">
     <input type="button" value="modify account" onclick="modifyAccount()">
@@ -155,6 +156,19 @@
                     "cur_pw" : inputCurPw.value,
                     "aft_pw" : inputAftPw.value,
                 })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    }
+
+    const refreshSession = ()=>{
+        fetch("/account/refreshSession", {
+            "method": "GET",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
             })
             .then(response => response.json())
             .then(result => {
