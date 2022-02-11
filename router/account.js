@@ -5,9 +5,9 @@ const path = require("path");
 const dao = require("../module/DAO.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
 
-const MongoStore = require('connect-mongo');
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
+const MongoStore = require('connect-mongo');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: false}));
@@ -55,7 +55,6 @@ router.post("/login", (req,res) =>{
                 resultFormat.success = true;
 
                 // check session is exist
-                mongoStore.
 
                 // Request session & cookie
                 req.session.user = { 
@@ -366,8 +365,7 @@ router.get("/autologin", (req, res)=>{
     // find user info in current login database.
 });
 
-router.get("overlapLogin", (req,res)=>{
-
+router.get("/overlapLogin", (req,res)=>{
 });
 
 app.use('/', router);
