@@ -1,8 +1,9 @@
 const { json } = require('body-parser');
 const mongoose = require('mongoose');
+const accountInfo = require('../accountData/mongodbAccountInfo');
 
 const connect = () => {
-    mongoose.connect('mongodb+srv://user:00V893GLnF7LrI9p@dungeonus-cluster.2wk2k.mongodb.net/session-store?retryWrites=true&w=majority', function (err) {
+    mongoose.connect('mongodb+srv://'+accountInfo.user+':'+accountInfo.password+'@dungeonus-cluster.2wk2k.mongodb.net/session-store?retryWrites=true&w=majority', function (err) {
         if (err) {
             console.error('mongodb connection error', err);
         }

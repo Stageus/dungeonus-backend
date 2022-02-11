@@ -4,6 +4,7 @@ const app = express();
 const path = require("path");
 const dao = require("../module/DAO.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
+const accountInfo = require('../accountData/mongodbAccountInfo');
 
 const session = require('express-session');
 const FileStore = require('session-file-store')(session);
@@ -14,7 +15,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 
 const mongoStore = MongoStore.create({
-    mongoUrl: 'mongodb+srv://user:00V893GLnF7LrI9p@dungeonus-cluster.2wk2k.mongodb.net/session-store?retryWrites=true&w=majority',
+    mongoUrl: 'mongodb+srv://'+accountInfo.user+':'+accountInfo.password+'@dungeonus-cluster.2wk2k.mongodb.net/session-store?retryWrites=true&w=majority',
     autoRemove: 'interval',
     ttl: 3600,
 });
