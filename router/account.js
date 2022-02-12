@@ -12,6 +12,8 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 
+const sessionDAO = require("../module/mongoSessionDAO");
+
 // session & cookie
 const sessionObj = session({
     secret: 'test string', // TODO: change secret string
@@ -38,7 +40,7 @@ router.post("/login", (req,res) =>{
     };
 
     dao.selectWithId(DBUtil.loginTable, reqId)
-    .then(res_loginSel=>{
+    .then(async res_loginSel => {
         if (res_loginSel.rows.length == 0) {
             resultFormat.errmsg = "There is no corresponding Id";
         }
@@ -47,7 +49,19 @@ router.post("/login", (req,res) =>{
                 resultFormat.success = true;
 
                 // check session which corresponding to request id is exist
-
+                let foundSession;
+                try{
+                    foundSession = await sessionDAO.findSessionWithUserId(reqId);
+                }
+                catch(e){
+                    console.log('Exception : find session');
+                    console.log(e);
+                }
+                // if user's another session is already exist
+                let deleteSession;
+                if(Object.values(foundSession).length != 0){
+                    deleteSession = await sessionDAO.deleteSessionWithUserId(reqId);
+                }
 
                 // Request session & cookie
                 req.session.user = { 
