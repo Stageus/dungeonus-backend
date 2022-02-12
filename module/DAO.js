@@ -1,4 +1,3 @@
-const express = require("express");
 const client = require("../module/connectClient.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
 
