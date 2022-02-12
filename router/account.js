@@ -55,7 +55,8 @@ router.post("/login", (req,res) =>{
             if (res_loginSel.rows[0].pw == reqPw) {
                 resultFormat.success = true;
 
-                // check session is exist
+                // check session which corresponding to request id is exist
+
 
                 // Request session & cookie
                 req.session.user = { 
@@ -353,6 +354,7 @@ router.post("/changepw", (req,res)=>{
     });
 });
 
+// 명세서에 없는 부분 - 처리방법 고민
 router.get("/refreshSession", (req,res)=>{
     mongoStore.touch(req.cookies.sessionId, sessionObj, (err)=>{
         if(err) console.log(err);

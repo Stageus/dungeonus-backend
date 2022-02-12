@@ -1,4 +1,3 @@
-const { json } = require('body-parser');
 const mongoose = require('mongoose');
 const accountInfo = require('../accountData/mongodbAccountInfo');
 
@@ -10,27 +9,8 @@ const connect = () => {
         console.log('mongodb connected');
     });
 }
-  
+
 connect();
-// mongoose.connection.on('disconnected', connect);
-
-// const studentSchema = new mongoose.Schema({
-//     name: String,
-//     score: Number,
-// })
-// const Student = mongoose.model("Studentu", studentSchema);
-// const student1 = new Student({
-//     name: 'testname',
-//     score: 1,
-// })
-// const example =  student1.save()
-//     .then(() => {
-//         console.log('success');
-//     })
-//     .catch((e) => {
-//         console.log(e);
-//     })
-
 const sessionSchema = new mongoose.Schema({
     _id: String,
     expires: Date,
@@ -40,7 +20,13 @@ const sessionSchema = new mongoose.Schema({
 const Session =  mongoose.model("session", sessionSchema);
 Session.find((err, sessions)=>{
     if(err) return "error";
+    if(Object.keys(sessions).length == 0) 
+    console.log(sessions);
+    else
     console.log(JSON.parse(sessions[0].session).user);
 })
+Session.find({ $search: '"id":"testid"' }, (err, sessions) => {
+    console.log(sessions)
+});
 
-// module.exports = ;
+module.exports = Session;
