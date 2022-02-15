@@ -20,6 +20,8 @@
     <input type="button" value="login" onclick="login()">
     <input type="button" value="logout" onclick="logout()">
     <input type="button" value="refresh session" onclick="refreshSession()">
+    <input type="button" value="auto login" onclick="autoLogin()">
+    <input type="button" value="check session" onclick="checkSession()">
     <br>
     <input type="button" value="delete" onclick="del()">
     <input type="button" value="modify account" onclick="modifyAccount()">
@@ -34,13 +36,6 @@
     const inputGen = document.getElementById("inputGen");
     const inputCurPw = document.getElementById("inputCurPw");
     const inputAftPw = document.getElementById("inputAftPw");
-
-    const test = ()=>{
-        console.log(inputId.value);
-        console.log(inputPw.value);
-        console.log(inputName.value);
-        console.log(inputGen.value);
-    }
 
     const login = ()=>{
         fetch("/account/login", {
@@ -68,15 +63,6 @@
                 "body": JSON.stringify({
                 })
             })
-            .then(response => response.json())
-            .then(result => {
-                console.log(result);
-            });
-    }
-
-    const autoLogin = () => {
-        fetch("/account/autologin", {
-            "method": "GET"})
             .then(response => response.json())
             .then(result => {
                 console.log(result);
@@ -164,7 +150,7 @@
     }
 
     const refreshSession = ()=>{
-        fetch("/account/refreshSession", {
+        fetch("/account/refreshsession", {
             "method": "GET",
             "headers": {
                     "Content-Type": "application/json"
@@ -176,6 +162,35 @@
             });
     }
 
-    autoLogin();
+    const autoLogin = () => {
+        fetch("/account/autologin", {
+            "method": "GET"})
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    }
+
+    const checkSession = () => {
+        fetch("/account/checksession", {
+            "method": "GET"})
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    }
+
+    const test = () => {
+        fetch("/account/test", {
+            "method": "POST",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    }
 </script>
 </html>

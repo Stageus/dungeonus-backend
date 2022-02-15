@@ -62,6 +62,8 @@ router.post("/login", (req,res) =>{
                 if(Object.values(foundSession).length != 0){
                     deleteSession = await sessionDAO.deleteSessionWithUserId(reqId);
                 }
+                console.log("Login API delete session :");
+                console.log(deleteSession);
 
                 // Request session & cookie
                 req.session.user = { 
@@ -72,9 +74,6 @@ router.post("/login", (req,res) =>{
                 res.cookie(cookieKeyName, req.session.id);
                 console.log(req.session.id);
                 console.log(req.session.user);
-
-                // TODO: move to login complete page
-                // res.sendFile(path.join(__dirname, loginSuccessPage));
             }
             else {
                 resultFormat.errmsg = "Wrong Password";
@@ -359,21 +358,166 @@ router.post("/changepw", (req,res)=>{
     });
 });
 
-// 명세서에 없는 부분 - 처리방법 고민
-router.get("/refreshSession", (req,res)=>{
-    mongoStore.touch(req.cookies.sessionId, sessionObj, (err)=>{
-        if(err) console.log(err);
-    });
-
-    res.send({});
-})
-
-router.get("/autologin", (req, res)=>{
+router.get("/autologin", async (req, res)=>{
+    const resultFormat = {
+        "success" : false,
+        "errmsg" : "empty",
+        "session_id" : "empty",
+    };
+    
     // TODO: using cookie's session id, 
     // find user info in current login database.
+    const sessionId = req.cookies.sessionId;
+    let foundSession;
+    try {
+        foundSession = await sessionDAO.findSessionWithSessionId(sessionId);
+    }
+    catch (e) {
+        console.log('Exception : find session');
+        console.log(e);
+    }
+
+    if(Object.values(foundSession).length == 1){
+        // if session is valid.
+        const userInfo = JSON.parse(foundSession[0].session).user;
+        const res_loginSel = await dao.selectWithId(DBUtil.loginTable, userInfo.id);
+        if (res_loginSel.rows.length == 0) {
+            resultFormat.errmsg = "There is no corresponding Id";
+            res.send(resultFormat);
+        }
+        else {
+            if (res_loginSel.rows[0].pw == userInfo.pw) {
+                let deleteSession;
+                if(Object.values(foundSession).length != 0){
+                    deleteSession = await sessionDAO.deleteSessionWithUserId(userInfo.id);
+                }
+                console.log("Login API delete session :");
+                console.log(deleteSession);
+
+                // Request session & cookie
+                req.session.user = { 
+                    'id' : userInfo.id, 
+                    'pw' : userInfo.pw,
+                };
+                resultFormat.session_id = req.session.id;
+                res.cookie(cookieKeyName, req.session.id);
+                console.log("Changed session id : " + req.session.id);
+
+                resultFormat.success = true;
+                res.send(resultFormat);
+            }
+            else {
+                resultFormat.errmsg = "Wrong Password";
+                res.send(resultFormat);
+            }
+        }
+    }
+    else if(Object.values(foundSession).length > 1){
+        resultFormat.errmsg = "There is more than 1 row with same session id in session store";
+        res.send(resultFormat);
+    }
+    else{
+        resultFormat.errmsg = "The session id is invalid";
+        res.send(resultFormat);
+    }
 });
 
-router.get("/overlapLogin", (req,res)=>{
+router.get("/refreshsession", async(req,res)=>{
+    const resultFormat = {
+        "success" : false,
+        "errmsg" : "empty",
+    };
+
+    // check session is valid
+    const sessionId = req.cookies.sessionId;
+    let foundSession;
+    try {
+        foundSession = await sessionDAO.findSessionWithSessionId(sessionId);
+    }
+    catch (e) {
+        console.log('Exception : find session');
+        console.log(e);
+    }
+
+    if(Object.values(foundSession).length == 1){
+        // if session is valid.
+        mongoStore.touch(req.cookies.sessionId, sessionObj, (err)=>{
+            if(err) console.log(err);
+            else {
+                resultFormat.success = true;
+                res.send(resultFormat);
+            }
+        });   
+    }
+    else if(Object.values(foundSession).length > 1){
+        resultFormat.errmsg = "There is more than 1 row with same session id in session store";
+        res.send(resultFormat);
+    }
+    else{
+        resultFormat.errmsg = "The session id is invalid";
+        res.send(resultFormat);
+    }
+})
+
+router.get("/checksession", async (req,res)=>{
+    const resultFormat = {
+        "success" : false,
+        "errmsg" : "empty",
+        "validity" : false,
+        "id" : "",
+    };
+
+    const sessionId = req.cookies.sessionId;
+    let foundSession;
+    try {
+        foundSession = await sessionDAO.findSessionWithSessionId(sessionId);
+    }
+    catch (e) {
+        console.log('Exception : find session');
+        console.log(e);
+    }
+
+    if(Object.values(foundSession).length == 1){
+        // if session is valid.
+        const userInfo = JSON.parse(foundSession[0].session).user;
+        const res_loginSel = await dao.selectWithId(DBUtil.loginTable, userInfo.id);
+        if (res_loginSel.rows.length == 0) {
+            resultFormat.errmsg = "There is no corresponding Id";
+            res.send(resultFormat);
+        }
+        else {
+            if (res_loginSel.rows[0].pw == userInfo.pw) {
+                resultFormat.success = true;
+                resultFormat.validity = true;
+                resultFormat.id = userInfo.id;
+                res.send(resultFormat);
+            }
+            else {
+                resultFormat.errmsg = "Wrong Password";
+                res.send(resultFormat);
+            }
+        }
+    }
+    else if(Object.values(foundSession).length > 1){
+        resultFormat.errmsg = "There is more than 1 row with same session id in session store";
+        res.send(resultFormat);
+    }
+    else{
+        resultFormat.success = true;
+        resultFormat.errmsg = "The session id is invalid";
+        res.send(resultFormat);
+    }
+})
+
+router.post("/test", (req,res)=>{
+    const resultFormat = {
+        "success" : false,
+        "errmsg" : "test",
+    };
+
+    console.log(req.sessionID);
+
+    res.send(resultFormat);
 });
 
 app.use('/', router);
