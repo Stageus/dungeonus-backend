@@ -46,16 +46,19 @@ router.post("/login", async (req,res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
     
     if (res_loginSel.rows.length == 0) {
         resultFormat.errmsg = "There is no corresponding Id";
         res.send(resultFormat);
+        return;
     }
-
+    
     if (res_loginSel.rows[0].pw != reqPw) {
         resultFormat.errmsg = "Wrong Password";
         res.send(resultFormat);
+        return;
     }
 
     resultFormat.success = true;
@@ -112,11 +115,13 @@ router.delete("/", async (req, res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
 
     if (res_loginSel.rows.length == 0) {
         resultFormat.errmsg = "There is no corresponding Id";
         res.send(resultFormat);
+        return;
     }
 
     let res_profSel;
@@ -128,11 +133,13 @@ router.delete("/", async (req, res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
 
     if (res_profSel.rows.length == 0) {
         resultFormat.errmsg = "There is no corresponding Id";
         res.send(resultFormat);
+        return;
     }
     
     let res_loginDel;
@@ -144,11 +151,13 @@ router.delete("/", async (req, res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
 
-    if (res_loginDel.rows.length == 0) {
+    if (res_loginDel.rows.rowCount == 0) {
         resultFormat.errmsg = "There is occured trouble in delete";
         res.send(resultFormat);
+        return;
     }
             
     let res_profDel;
@@ -160,11 +169,13 @@ router.delete("/", async (req, res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
         
-    if (res_profDel.rows.length == 0) {
+    if (res_profDel.rows.rowCount == 0) {
         resultFormat.errmsg = "There is occured trouble in delete";
         res.send(resultFormat);
+        return;
     }
 
     resultFormat.success = true;
@@ -190,28 +201,31 @@ router.put("/", async (req,res)=>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
     
     if (res_profSel.rows.length == 0) {
         resultFormat.errmsg = "There is no corresponding Id";
         res.send(resultFormat);
+        return;
     }
 
     let res_Update;
     try{
         res_Update = await dao.updateProfileWithId(reqName, reqGeneration, reqCourse, reqId);
-        console.log(res_Update);
     }
     catch(e){
         console.log("Exception in put router dao.updateProfileWithId :");
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
         
     if (res_Update.rowCount == 0) {
         resultFormat.errmsg = "There is occured trouble in update";
         res.send(resultFormat);
+        return;
     }
 
     resultFormat.success = true;
@@ -238,12 +252,14 @@ router.post("/", async (req,res)=>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
     // if profile row is already exist
     if (res_profSel.rows.length != 0) {
         resultFormat.errmsg = "Id is already exist in "
             + DBUtil.profileTable + " table";
         res.send(resultFormat);
+        return;
     }
     // insert profile table
     let res_profIns;
@@ -255,11 +271,13 @@ router.post("/", async (req,res)=>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
 
     if (res_profIns.rowCount == 0) {
         resultFormat.errmsg = "There is occured trouble in insert";
         res.send(resultFormat);
+        return;
     }
 
     /*
@@ -275,12 +293,14 @@ router.post("/", async (req,res)=>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
     // if login row is already exist
     if (res_loginSel.rows.length != 0) {
         resultFormat.errmsg = "Id is already exist in "
             + DBUtil.loginTable + " table";
         res.send(resultFormat);
+        return;
     }
     // insert login table
     let res_loginIns;
@@ -304,26 +324,29 @@ router.post("/", async (req,res)=>{
             console.log(e_inCatch);
             resultFormat.errmsg = e_inCatch;
             res.send(resultFormat);
+            return;
         }
 
         if (res_profDel.rows.length == 0) {
             resultFormat.errmsg = "There is trouble in delete";
             res.send(resultFormat);
+            return;
         }
-        else {
-            resultFormat.errmsg = "Completely delete inserted profile table";
-            res.send(resultFormat);
-        }
+
+        resultFormat.errmsg = "Completely delete inserted profile table";
+        res.send(resultFormat);
+        return;
     }
     
     if (res_loginIns.rowCount == 0) {
         resultFormat.errmsg = "There is occured trouble in insert";
         res.send(resultFormat);
+        return;
     }
-    else {
-        resultFormat.success = true;
-        res.send(resultFormat);
-    }
+    
+    resultFormat.success = true;
+    res.send(resultFormat);
+    return;
 });
 
 router.get("/total", async (req, res) =>{
@@ -342,6 +365,7 @@ router.get("/total", async (req, res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
 
     resultFormat.id_list = res_profSel.rows;
@@ -358,7 +382,7 @@ router.post("/changepw", async (req,res)=>{
         "errmsg" : "empty",
     };
 
-    // check id is valid
+    // check id is exist
     let res_loginSel;
     try{
         res_loginSel = await dao.selectWithId(DBUtil.loginTable, reqId);
@@ -368,19 +392,29 @@ router.post("/changepw", async (req,res)=>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
     
     if (res_loginSel.rows.length == 0) {
         resultFormat.errmsg = "There is no corresponding Id";
         res.send(resultFormat);
+        return;
     }
     
     // check cur_pw is correct pw
     if (res_loginSel.rows[0].pw != reqCurPw) {
         resultFormat.errmsg = "Wrong password";
         res.send(resultFormat);
+        return;
     }
     
+    // check aft_pw's format is valid
+    if(reqAftPw.replace(/ /gi, "") == '' || reqAftPw.replace(/ /gi, "")!= reqAftPw){
+        resultFormat.errmsg = "After password is invalid format";
+        res.send(resultFormat);
+        return;
+    }
+
     // update pw to aft_pw
     let res_loginUdt;
     try{
@@ -391,11 +425,13 @@ router.post("/changepw", async (req,res)=>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        return;
     }
     
     if (res_loginUdt.rowCount == 0) {
         resultFormat.errmsg = "There is trouble in update";
         res.send(resultFormat);
+        return;
     }
 
     resultFormat.success = true;
@@ -422,6 +458,7 @@ router.get("/autologin", async (req, res)=>{
         if (res_loginSel.rows.length == 0) {
             resultFormat.errmsg = "There is no corresponding Id";
             res.send(resultFormat);
+            return;
         }
 
         // check user pw
@@ -440,20 +477,23 @@ router.get("/autologin", async (req, res)=>{
 
             resultFormat.success = true;
             res.send(resultFormat);
+            return;
         }
         else {
             resultFormat.errmsg = "Wrong Password";
             res.send(resultFormat);
+            return;
         }
-        
     }
     else if(Object.values(foundSession).length > 1){
         resultFormat.errmsg = "There is more than 1 row with same session id in session store";
         res.send(resultFormat);
+        return;
     }
     else{ // Object.values(foundSession).length == 0
         resultFormat.errmsg = "The session id is invalid";
         res.send(resultFormat);
+        return;
     }
 });
 
@@ -473,19 +513,23 @@ router.get("/refreshsession", async(req,res)=>{
             console.log(err_touch);
             resultFormat.errmsg = "There is exception in mongoStore.session touch";
             res.send(resultFormat);
+            return;
         }
         else {
             resultFormat.success = true;
             res.send(resultFormat);
+            return;
         }
     }
     else if(foundSessionLen > 1){
         resultFormat.errmsg = "There is more than 1 row with same session id in session store";
         res.send(resultFormat);
+        return;
     }
     else{ // foundSessionLen == 0
         resultFormat.errmsg = "The session id is invalid";
         res.send(resultFormat);
+        return;
     }
 })
 
@@ -508,6 +552,7 @@ router.get("/checksession", async (req,res)=>{
         if (res_loginSel.rows.length == 0) {
             resultFormat.errmsg = "There is no corresponding Id";
             res.send(resultFormat);
+            return;
         }
         else {
             if (res_loginSel.rows[0].pw == userInfo.pw) {
@@ -515,21 +560,25 @@ router.get("/checksession", async (req,res)=>{
                 resultFormat.validity = true;
                 resultFormat.id = userInfo.id;
                 res.send(resultFormat);
+                return;
             }
             else {
                 resultFormat.errmsg = "Wrong Password";
                 res.send(resultFormat);
+                return;
             }
         }
     }
     else if(Object.values(foundSession).length > 1){
         resultFormat.errmsg = "There is more than 1 row with same session id in session store";
         res.send(resultFormat);
+        return;
     }
     else{
         resultFormat.success = true;
         resultFormat.errmsg = "The session id is invalid";
         res.send(resultFormat);
+        return;
     }
 })
 
