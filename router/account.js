@@ -4,6 +4,7 @@ const app = express();
 const path = require("path");
 const dao = require("../module/DAO.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
+const accountModule = require("../module/accountModule");
 
 const session = require('express-session');
 const mongoStore = require("../module/mongoSessionStore");
@@ -26,11 +27,8 @@ const sessionObj = session({
 app.use(sessionObj);
 const cookieKeyName = 'sessionId';
 
-// path
-const loginSuccessPage = "../server_sects/sect1_test/testLoginSuccess.html";
-
 // router
-router.post("/login", (req,res) =>{
+router.post("/login", async (req,res) =>{
     const reqId = req.body.id;
     const reqPw = req.body.pw;
     const resultFormat = {
@@ -39,55 +37,51 @@ router.post("/login", (req,res) =>{
         "session_id" : "empty",
     };
 
-    dao.selectWithId(DBUtil.loginTable, reqId)
-    .then(async res_loginSel => {
-        if (res_loginSel.rows.length == 0) {
-            resultFormat.errmsg = "There is no corresponding Id";
-        }
-        else {
-            if (res_loginSel.rows[0].pw == reqPw) {
-                resultFormat.success = true;
-
-                // check session which corresponding to request id is exist
-                let foundSession;
-                try{
-                    foundSession = await sessionDAO.findSessionWithUserId(reqId);
-                }
-                catch(e){
-                    console.log('Exception : find session');
-                    console.log(e);
-                }
-                // if user's another session is already exist
-                let deleteSession;
-                if(Object.values(foundSession).length != 0){
-                    deleteSession = await sessionDAO.deleteSessionWithUserId(reqId);
-                }
-                console.log("Login API delete session :");
-                console.log(deleteSession);
-
-                // Request session & cookie
-                req.session.user = { 
-                    'id' : reqId, 
-                    'pw' : reqPw,
-                };
-                resultFormat.session_id = req.session.id;
-                res.cookie(cookieKeyName, req.session.id);
-                console.log(req.session.id);
-                console.log(req.session.user);
-            }
-            else {
-                resultFormat.errmsg = "Wrong Password";
-            }
-        }
-        res.send(resultFormat);
-    })
-    .catch(e =>{
+    let res_loginSel;
+    try{
+        res_loginSel = await dao.selectWithId(DBUtil.loginTable, reqId);
+    }
+    catch(e){
+        console.log("Exception in login router dao.selectWithId : ");
+        console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-    });
+    }
+    
+    if (res_loginSel.rows.length == 0) {
+        resultFormat.errmsg = "There is no corresponding Id";
+        res.send(resultFormat);
+    }
+
+    if (res_loginSel.rows[0].pw != reqPw) {
+        resultFormat.errmsg = "Wrong Password";
+        res.send(resultFormat);
+    }
+
+    resultFormat.success = true;
+
+    // check session which corresponding to request id is exist
+    const foundSessionLen = await accountModule.checkSessionWithUserIdRetLen(reqId);
+
+    console.log(foundSessionLen);
+    // if user's another session is already exist
+    if (foundSessionLen != 0)
+        await accountModule.deleteSessionWithUserIdRetNo(reqId);
+
+    // Request session & cookie
+    req.session.user = {
+        'id': reqId,
+        'pw': reqPw,
+    };
+    resultFormat.session_id = req.session.id;
+    res.cookie(cookieKeyName, req.session.id);
+    console.log(req.session.id);
+    console.log(req.session.user);
+    res.send(resultFormat);
 });
 
-router.post("/logout", (req,res)=>{
+router.post("/logout", async (req,res)=>{
+    const reqId = req.body.id;
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
@@ -96,73 +90,88 @@ router.post("/logout", (req,res)=>{
     // Delete cookies and sessions after check those.
     req.session.destroy();
     res.clearCookie(cookieKeyName);
-    resultFormat.success = true;
+    await accountModule.deleteSessionWithUserIdRetNo(reqId);
 
+    resultFormat.success = true;
     res.send(resultFormat);
 });
 
-router.delete("/", (req, res) =>{
+router.delete("/", async (req, res) =>{
     const reqId = req.body.id;
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
     };
 
-    dao.selectWithId(DBUtil.loginTable, reqId)
-    .then(res_loginSel=>{
-        if(res_loginSel.rows.length == 0){
-            resultFormat.errmsg = "There is no corresponding Id";
-        }
-        else{
-            dao.selectWithId(DBUtil.profileTable, reqId)
-            .then(res_profSel=>{
-                if(res_profSel.rows.length == 0){
-                    resultFormat.errmsg = "There is no corresponding Id";
-                }
-                else{
-                    dao.deleteWithId(DBUtil.loginTable, reqId)
-                    .then(res_loginDel=>{
-                        if(res_loginDel.rows.length == 0){
-                            resultFormat.errmsg = "There is occured trouble in delete";
-                            res.send(resultFormat);
-                            return;
-                        }
-                    })
-                    .catch(e=>{
-                        resultFormat.errmsg = e;
-                        res.send(resultFormat);
-                        return;
-                    });
-
-                    dao.deleteWithId(DBUtil.profileTable, reqId)
-                    .then(res_profDel=>{
-                        if(res_profDel.rows.length == 0){
-                            resultFormat.errmsg = "There is occured trouble in delete";
-                        }
-                        else{
-                            resultFormat.success = true;
-                        }
-                        res.send(resultFormat);
-                    })
-                    .catch(e=>{
-                        resultFormat.errmsg = e;
-                        res.send(resultFormat);
-                    });
-                }
-            })
-            .catch(e=>{
-                resultFormat.errmsg = e;
-                res.send(resultFormat);
-            });
-        }
-    })
-    .catch(e=>{
+    let res_loginSel;
+    try{
+        res_loginSel = await dao.selectWithId(DBUtil.loginTable, reqId);
+    }
+    catch(e){
+        console.log("Exception in delete router dao.selectWithId loginTable :");
+        console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-    });
+    }
+
+    if (res_loginSel.rows.length == 0) {
+        resultFormat.errmsg = "There is no corresponding Id";
+        res.send(resultFormat);
+    }
+
+    let res_profSel;
+    try{
+        res_profSel = await dao.selectWithId(DBUtil.profileTable, reqId);
+    }
+    catch(e){
+        console.log("Exception in delete router dao.selectWithId profileTable :");
+        console.log(e);
+        resultFormat.errmsg = e;
+        res.send(resultFormat);
+    }
+
+    if (res_profSel.rows.length == 0) {
+        resultFormat.errmsg = "There is no corresponding Id";
+        res.send(resultFormat);
+    }
+    
+    let res_loginDel;
+    try{
+        res_loginDel = await dao.deleteWithId(DBUtil.loginTable, reqId);
+    }
+    catch(e){
+        console.log("Exception in delete router dao.deleteWithId loginTable :");
+        console.log(e);
+        resultFormat.errmsg = e;
+        res.send(resultFormat);
+    }
+
+    if (res_loginDel.rows.length == 0) {
+        resultFormat.errmsg = "There is occured trouble in delete";
+        res.send(resultFormat);
+    }
+            
+    let res_profDel;
+    try{
+        res_profDel = await dao.deleteWithId(DBUtil.profileTable, reqId);
+    }
+    catch(e){
+        console.log("Exception in delete router dao.deleteWithId profileTable :");
+        console.log(e);
+        resultFormat.errmsg = e;
+        res.send(resultFormat);
+    }
+        
+    if (res_profDel.rows.length == 0) {
+        resultFormat.errmsg = "There is occured trouble in delete";
+        res.send(resultFormat);
+    }
+
+    resultFormat.success = true;
+    res.send(resultFormat);
 });
 
-router.put("/", (req,res)=>{
+router.put("/", async (req,res)=>{
     const reqId = req.body.id;
     const reqName = req.body.name;
     const reqGeneration = req.body.generation;
@@ -172,36 +181,44 @@ router.put("/", (req,res)=>{
         "errmsg" : "empty",
     };
 
-    dao.selectWithId(DBUtil.profileTable, reqId)
-    .then(res_profSel=>{
-        if(res_profSel.rows.length == 0){
-            resultFormat.errmsg = "There is no corresponding Id";
-        }
-        else{
-            dao.updateProfileWithId(reqName, reqGeneration, reqCourse, reqId)
-            .then(res_Update=>{
-                console.log(res_Update);
-                if(res_Update.rowCount == 0){
-                    resultFormat.errmsg = "There is occured trouble in update";
-                }
-                else{
-                    resultFormat.success = true;
-                }
-                res.send(resultFormat);
-            })
-            .catch(e=>{
-                resultFormat.errmsg = e;
-                res.send(resultFormat);
-            });
-        }
-    })
-    .catch(e=>{
+    let res_profSel;
+    try{
+        res_profSel = await dao.selectWithId(DBUtil.profileTable, reqId);
+    }
+    catch(e){
+        console.log("Exception in put router dao.selectWithId profileTable :");
+        console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-    });
+    }
+    
+    if (res_profSel.rows.length == 0) {
+        resultFormat.errmsg = "There is no corresponding Id";
+        res.send(resultFormat);
+    }
+
+    let res_Update;
+    try{
+        res_Update = await dao.updateProfileWithId(reqName, reqGeneration, reqCourse, reqId);
+        console.log(res_Update);
+    }
+    catch(e){
+        console.log("Exception in put router dao.updateProfileWithId :");
+        console.log(e);
+        resultFormat.errmsg = e;
+        res.send(resultFormat);
+    }
+        
+    if (res_Update.rowCount == 0) {
+        resultFormat.errmsg = "There is occured trouble in update";
+        res.send(resultFormat);
+    }
+
+    resultFormat.success = true;
+    res.send(resultFormat);
 });
 
-router.post("/", (req,res)=>{
+router.post("/", async (req,res)=>{
     const reqId = req.body.id;
     const reqName = req.body.name;
     const reqGeneration = req.body.generation;
@@ -212,107 +229,127 @@ router.post("/", (req,res)=>{
     };
 
     // check and insert profile table
-    dao.selectWithId(DBUtil.profileTable, reqId)
-    .then(res_profSel=>{
-        if(res_profSel.rows.length != 0){
-            resultFormat.errmsg = "Id is already exist in " 
-                + DBUtil.profileTable + " table";
+    let res_profSel;
+    try{
+        res_profSel = await dao.selectWithId(DBUtil.profileTable, reqId);
+    }
+    catch(e){
+        console.log("Exception in post router dao.selectWithId profileTable : ");
+        console.log(e);
+        resultFormat.errmsg = e;
+        res.send(resultFormat);
+    }
+    // if profile row is already exist
+    if (res_profSel.rows.length != 0) {
+        resultFormat.errmsg = "Id is already exist in "
+            + DBUtil.profileTable + " table";
+        res.send(resultFormat);
+    }
+    // insert profile table
+    let res_profIns;
+    try{
+        res_profIns =  await dao.insertProfile(reqId, reqName, reqGeneration);
+    }
+    catch(e){
+        console.log("Exception in post router dao.selectWithId profileTable : ");
+        console.log(e);
+        resultFormat.errmsg = e;
+        res.send(resultFormat);
+    }
+
+    if (res_profIns.rowCount == 0) {
+        resultFormat.errmsg = "There is occured trouble in insert";
+        res.send(resultFormat);
+    }
+
+    /*
+    if insert profile table successfully
+    next process is check and insert to login table
+    */
+    let res_loginSel;
+    try{
+        res_loginSel = await dao.selectWithId(DBUtil.loginTable, reqId);
+    }
+    catch(e){
+        console.log("Exception in post router dao.selectWithId loginTable : ");
+        console.log(e);
+        resultFormat.errmsg = e;
+        res.send(resultFormat);
+    }
+    // if login row is already exist
+    if (res_loginSel.rows.length != 0) {
+        resultFormat.errmsg = "Id is already exist in "
+            + DBUtil.loginTable + " table";
+        res.send(resultFormat);
+    }
+    // insert login table
+    let res_loginIns;
+    try {
+        res_loginIns = await dao.insertLogin(reqId, reqPw, reqName);
+    }
+    catch (e) {
+        console.log("Exception in post router dao.insertLogin : ");
+        console.log(e);
+        /* 
+        if insert profile table successfully
+        but fail to login table 
+        delete inserted profile table row
+        */
+        let res_profDel;
+        try {
+            res_profDel = await dao.deleteWithId(DBUtil.profileTable, reqId);
+        }
+        catch (e_inCatch) {
+            console.log("Exception in post router dao.deleteWithId profileTable : ");
+            console.log(e_inCatch);
+            resultFormat.errmsg = e_inCatch;
+            res.send(resultFormat);
+        }
+
+        if (res_profDel.rows.length == 0) {
+            resultFormat.errmsg = "There is trouble in delete";
             res.send(resultFormat);
         }
         else {
-            dao.insertProfile(reqId, reqName, reqGeneration)
-            .then(res_profIns=>{
-                if(res_profIns.rowCount == 0){
-                    resultFormat.errmsg = "There is occured trouble in insert";
-                    res.send(resultFormat);
-                }
-                else{
-                    /*
-                    if insert profile table successfully
-                    next process is check and insert to login table
-                    */
-                    dao.selectWithId(DBUtil.loginTable, reqId)
-                    .then(res_loginSel=>{
-                        if(res_loginSel.rows.length != 0){
-                            resultFormat.errmsg = "Id is already exist in "
-                                + DBUtil.loginTable + " table";
-                            res.send(resultFormat);
-                        }
-                        else{
-                            dao.insertLogin(reqId, reqPw, reqName)
-                            .then(res_loginIns=>{
-                                if(res_loginIns.rowCount == 0){
-                                    resultFormat.errmsg = "There is occured trouble in insert";
-                                    res.send(resultFormat);
-                                }
-                                else{
-                                    resultFormat.success = true;
-                                    res.send(resultFormat);
-                                }
-                            })
-                            .catch(e=>{
-                                resultFormat.errmsg = e;
-                                res.send(resultFormat);
-                            })
-                        }
-                    })
-                    .catch(e=>{
-                        resultFormat.errmsg = e;
-                        /* 
-                        if insert profile table successfully
-                        but fail to login table 
-                        delete inserted profile table row
-                        */
-                        dao.deleteWithId(DBUtil.profileTable, reqId)
-                        .then(res_profDel=>{
-                            if(res_profDel.rows.length == 0){
-                                resultFormat.errmsg = "There is trouble in delete";
-                                res.send(resultFormat);
-                            }
-                            else{
-                                resultFormat.success = true;
-                                res.send(resultFormat);
-                            }
-                        })
-                        .catch(e=>{
-                            resultFormat.errmsg = e;
-                            res.send(resultFormat);
-                        })
-                    })
-                }
-            })
-            .catch(e=>{
-                resultFormat.errmsg = e;
-                res.send(resultFormat);
-            });
+            resultFormat.errmsg = "Completely delete inserted profile table";
+            res.send(resultFormat);
         }
-    })
-    .catch(e=>{
-        resultFormat.errmsg = e;
+    }
+    
+    if (res_loginIns.rowCount == 0) {
+        resultFormat.errmsg = "There is occured trouble in insert";
         res.send(resultFormat);
-    });
+    }
+    else {
+        resultFormat.success = true;
+        res.send(resultFormat);
+    }
 });
 
-router.get("/total", (req, res) =>{
+router.get("/total", async (req, res) =>{
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
         "id_list" : [],
     };
 
-    dao.selectAll(DBUtil.profileTable)
-    .then(res_profSel=>{
-        resultFormat.id_list = res_profSel.rows;
-        resultFormat.success = true;
-        res.send(resultFormat);
-    })
-    .catch(e=>{
+    let res_profSel;
+    try{
+        res_profSel = await dao.selectAll(DBUtil.profileTable);
+    }
+    catch(e){
+        console.log("Exception in total router dao.selectAll profileTable : ");
+        console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-    })
+    }
+
+    resultFormat.id_list = res_profSel.rows;
+    resultFormat.success = true;
+    res.send(resultFormat);
 });
 
-router.post("/changepw", (req,res)=>{
+router.post("/changepw", async (req,res)=>{
     const reqId = req.body.id;
     const reqCurPw = req.body.cur_pw;
     const reqAftPw = req.body.aft_pw;
@@ -321,41 +358,48 @@ router.post("/changepw", (req,res)=>{
         "errmsg" : "empty",
     };
 
-    // check cur_pw is correct pw
-    dao.selectWithId(DBUtil.loginTable, reqId)
-    .then(res_loginSel=>{
-        if(res_loginSel.rows.length == 0){
-            resultFormat.errmsg = "There is no corresponding Id";
-            res.send(resultFormat);
-        }
-
-        if(res_loginSel.rows[0].pw == reqCurPw){
-            // update pw to aft_pw
-            dao.updateLogin_PwWithId(reqAftPw, reqId)
-            .then(res_loginUdt=>{
-                if(res_loginUdt.rowCount == 0){
-                    resultFormat.errmsg = "There is trouble in update";
-                    res.send(resultFormat);
-                }
-                else{
-                    resultFormat.success = true;
-                    res.send(resultFormat);
-                }
-            })
-            .catch(e=>{
-                resultFormat.errmsg = e;
-                res.send(resultFormat);
-            })
-        }
-        else{ // different password
-            resultFormat.errmsg = "Wrong password";
-            res.send(resultFormat);
-        }
-    })
-    .catch(e=>{
+    // check id is valid
+    let res_loginSel;
+    try{
+        res_loginSel = await dao.selectWithId(DBUtil.loginTable, reqId);
+    }
+    catch(e){
+        console.log("Exception in changepw router dao.selectWithId loginTable : ");
+        console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-    });
+    }
+    
+    if (res_loginSel.rows.length == 0) {
+        resultFormat.errmsg = "There is no corresponding Id";
+        res.send(resultFormat);
+    }
+    
+    // check cur_pw is correct pw
+    if (res_loginSel.rows[0].pw != reqCurPw) {
+        resultFormat.errmsg = "Wrong password";
+        res.send(resultFormat);
+    }
+    
+    // update pw to aft_pw
+    let res_loginUdt;
+    try{
+        res_loginUdt = await dao.updateLogin_PwWithId(reqAftPw, reqId);
+    }
+    catch(e){
+        console.log("Exception in changepw router dao.updateLogin_PwWithId : ");
+        console.log(e);
+        resultFormat.errmsg = e;
+        res.send(resultFormat);
+    }
+    
+    if (res_loginUdt.rowCount == 0) {
+        resultFormat.errmsg = "There is trouble in update";
+        res.send(resultFormat);
+    }
+
+    resultFormat.success = true;
+    res.send(resultFormat);
 });
 
 router.get("/autologin", async (req, res)=>{
@@ -368,55 +412,46 @@ router.get("/autologin", async (req, res)=>{
     // TODO: using cookie's session id, 
     // find user info in current login database.
     const sessionId = req.cookies.sessionId;
-    let foundSession;
-    try {
-        foundSession = await sessionDAO.findSessionWithSessionId(sessionId);
-    }
-    catch (e) {
-        console.log('Exception : find session');
-        console.log(e);
-    }
+    const foundSession = await accountModule.checkSessionWithSessionIdRetObj(sessionId);
 
     if(Object.values(foundSession).length == 1){
         // if session is valid.
         const userInfo = JSON.parse(foundSession[0].session).user;
         const res_loginSel = await dao.selectWithId(DBUtil.loginTable, userInfo.id);
+
         if (res_loginSel.rows.length == 0) {
             resultFormat.errmsg = "There is no corresponding Id";
             res.send(resultFormat);
         }
-        else {
-            if (res_loginSel.rows[0].pw == userInfo.pw) {
-                let deleteSession;
-                if(Object.values(foundSession).length != 0){
-                    deleteSession = await sessionDAO.deleteSessionWithUserId(userInfo.id);
-                }
-                console.log("Login API delete session :");
-                console.log(deleteSession);
 
-                // Request session & cookie
-                req.session.user = { 
-                    'id' : userInfo.id, 
-                    'pw' : userInfo.pw,
-                };
-                resultFormat.session_id = req.session.id;
-                res.cookie(cookieKeyName, req.session.id);
-                console.log("Changed session id : " + req.session.id);
+        // check user pw
+        if (res_loginSel.rows[0].pw == userInfo.pw) {
+            // delete past session
+            await accountModule.deleteSessionWithUserIdRetNo(userInfo.id);
 
-                resultFormat.success = true;
-                res.send(resultFormat);
-            }
-            else {
-                resultFormat.errmsg = "Wrong Password";
-                res.send(resultFormat);
-            }
+            // Request session & cookie
+            req.session.user = {
+                'id': userInfo.id,
+                'pw': userInfo.pw,
+            };
+            resultFormat.session_id = req.session.id;
+            res.cookie(cookieKeyName, req.session.id);
+            console.log("Changed session id : " + req.session.id);
+
+            resultFormat.success = true;
+            res.send(resultFormat);
         }
+        else {
+            resultFormat.errmsg = "Wrong Password";
+            res.send(resultFormat);
+        }
+        
     }
     else if(Object.values(foundSession).length > 1){
         resultFormat.errmsg = "There is more than 1 row with same session id in session store";
         res.send(resultFormat);
     }
-    else{
+    else{ // Object.values(foundSession).length == 0
         resultFormat.errmsg = "The session id is invalid";
         res.send(resultFormat);
     }
@@ -428,32 +463,27 @@ router.get("/refreshsession", async(req,res)=>{
         "errmsg" : "empty",
     };
 
-    // check session is valid
     const sessionId = req.cookies.sessionId;
-    let foundSession;
-    try {
-        foundSession = await sessionDAO.findSessionWithSessionId(sessionId);
-    }
-    catch (e) {
-        console.log('Exception : find session');
-        console.log(e);
-    }
+    const foundSessionLen = await accountModule.checkSessionWithSessionIdRetLen(sessionId);
 
-    if(Object.values(foundSession).length == 1){
+    if(foundSessionLen == 1){
         // if session is valid.
-        mongoStore.touch(req.cookies.sessionId, sessionObj, (err)=>{
-            if(err) console.log(err);
-            else {
-                resultFormat.success = true;
-                res.send(resultFormat);
-            }
-        });   
+        const err_touch = await mongoStore.touch(req.cookies.sessionId, sessionObj);
+        if (err_touch) {
+            console.log(err_touch);
+            resultFormat.errmsg = "There is exception in mongoStore.session touch";
+            res.send(resultFormat);
+        }
+        else {
+            resultFormat.success = true;
+            res.send(resultFormat);
+        }
     }
-    else if(Object.values(foundSession).length > 1){
+    else if(foundSessionLen > 1){
         resultFormat.errmsg = "There is more than 1 row with same session id in session store";
         res.send(resultFormat);
     }
-    else{
+    else{ // foundSessionLen == 0
         resultFormat.errmsg = "The session id is invalid";
         res.send(resultFormat);
     }
@@ -468,19 +498,13 @@ router.get("/checksession", async (req,res)=>{
     };
 
     const sessionId = req.cookies.sessionId;
-    let foundSession;
-    try {
-        foundSession = await sessionDAO.findSessionWithSessionId(sessionId);
-    }
-    catch (e) {
-        console.log('Exception : find session');
-        console.log(e);
-    }
+    const foundSession = await accountModule.checkSessionWithSessionIdRetObj(sessionId);
 
     if(Object.values(foundSession).length == 1){
         // if session is valid.
         const userInfo = JSON.parse(foundSession[0].session).user;
         const res_loginSel = await dao.selectWithId(DBUtil.loginTable, userInfo.id);
+
         if (res_loginSel.rows.length == 0) {
             resultFormat.errmsg = "There is no corresponding Id";
             res.send(resultFormat);
@@ -509,6 +533,7 @@ router.get("/checksession", async (req,res)=>{
     }
 })
 
+// router to only test
 router.post("/test", (req,res)=>{
     const resultFormat = {
         "success" : false,
