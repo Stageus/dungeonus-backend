@@ -3,7 +3,7 @@ const accountInfo = require('../accountData/mongodbAccountInfo');
 const { DBInfo } = require('./mongoDBModule');
 
 const connect = () => {
-    mongoose.connect('mongodb+srv://'
+    return mongoose.createConnection('mongodb+srv://'
     +accountInfo.user+':'
     +accountInfo.password+'@'
     + DBInfo.mongoClusterName +'.2wk2k.mongodb.net/'
@@ -11,11 +11,11 @@ const connect = () => {
         if (err) {
             console.error('mongodb connection error', err);
         }
-        console.log('mongodb connected');
+        console.log('mongodb sessionDB connected');
     });
 }
 
-connect();
+const sessionConn = connect();
 
 const sessionSchema = new mongoose.Schema({
     _id: String,
@@ -23,6 +23,6 @@ const sessionSchema = new mongoose.Schema({
     session: String,
 })
 
-const SessionModel =  mongoose.model("session", sessionSchema);
+const SessionModel =  sessionConn.model("session", sessionSchema);
 
 module.exports = SessionModel;

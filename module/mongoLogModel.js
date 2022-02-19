@@ -3,7 +3,7 @@ const accountInfo = require('../accountData/mongodbAccountInfo');
 const { DBInfo } = require('./mongoDBModule');
 
 const connect = () => {
-    mongoose.connect('mongodb+srv://'
+    return mongoose.createConnection('mongodb+srv://'
     +accountInfo.user+':'
     +accountInfo.password+'@'
     + DBInfo.mongoClusterName +'.2wk2k.mongodb.net/'
@@ -11,17 +11,21 @@ const connect = () => {
         if (err) {
             console.error('mongodb connection error', err);
         }
-        console.log('mongodb connected');
+        console.log('mongodb logDB connected');
     });
 }
 
-connect();
+const logConn = connect();
 
 const logSchema = new mongoose.Schema({
-    userId: String,
-    time: Date,
+    log_time: Date,
+    user_id: String,
+    api_type: String,
+    user_ip: String,
+    req_data: String,
+    res_data: String,
 })
 
-const LogModel =  mongoose.model("log", logSchema);
+const LogModel =  logConn.model("log", logSchema);
 
 module.exports = LogModel;

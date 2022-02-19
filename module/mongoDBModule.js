@@ -12,4 +12,4 @@ const DBInfo = {
     },
 }
 
-module.exports = {DBInfo};
+module.exports = { DBInfo };
