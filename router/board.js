@@ -68,18 +68,16 @@ router.put("/", (req,res) => {
     }
 
     dao.selectWithPostingIndex(DBUtil.postingTable, reqIndex)
-    .then(res => {
+    .then(res_sel=> {
         //console.log(res.rows[0])
-        if (res.rows[0].id != reqId) {
-            console.log("1")
+        if (res_sel.rows[0].id != reqId) {
             resultFormat.errmsg = "you are not a posting writer, wrong ID"
             res.send(resultFormat);
         } else {
-            console.log("2")
             dao.updatePostingWithPostingIndex(reqTitle, reqContent, reqIndex)
-            .then(res_Update=>{
-                console.log(res_Update);
-                if(res_Update.rowCount == 0){
+            .then(res_upd=>{
+                console.log(res_upd);
+                if(res_upd.rowCount == 0){
                     resultFormat.errmsg = "problems occured while updating";
                 }
                 else{
@@ -94,8 +92,9 @@ router.put("/", (req,res) => {
         }
     })
     .catch (err => {
-        console.log("에러칸이다")
+        console.log("7")
         resultFormat.errmsg = err
+        console.log("8")
         res.send(resultFormat)
     })
 });
