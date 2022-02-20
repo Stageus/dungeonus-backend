@@ -431,7 +431,7 @@ router.get("/total", async (req, res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.total_accont, ip, 
+        await mongoLogDAO.sendLog("", apiType.account.total_accont, ip, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -439,7 +439,7 @@ router.get("/total", async (req, res) =>{
     resultFormat.id_list = res_profSel.rows;
     resultFormat.success = true;
     res.send(resultFormat);
-    await mongoLogDAO.sendLog(reqId, apiType.account.total_accont, ip, 
+    await mongoLogDAO.sendLog("", apiType.account.total_accont, ip, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
@@ -524,6 +524,7 @@ router.post("/changepw", async (req,res)=>{
 });
 
 router.get("/autologin", async (req, res)=>{
+    let userId;
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
@@ -536,6 +537,11 @@ router.get("/autologin", async (req, res)=>{
     const sessionId = req.cookies.sessionId;
     const foundSession = await accountModule.checkSessionWithSessionIdRetObj(sessionId);
 
+    // if session exist get user id
+    if(Object.values(foundSession).length > 0){
+        userId = JSON.parse(foundSession[0].session).user.id;
+    }
+
     if(Object.values(foundSession).length == 1){
         // if session is valid.
         const userInfo = JSON.parse(foundSession[0].session).user;
@@ -544,8 +550,8 @@ router.get("/autologin", async (req, res)=>{
         if (res_loginSel.rows.length == 0) {
             resultFormat.errmsg = "There is no corresponding Id";
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, ip, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
+            await mongoLogDAO.sendLog(userId, apiType.account.change_pw, ip, 
+                JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
 
@@ -565,35 +571,36 @@ router.get("/autologin", async (req, res)=>{
 
             resultFormat.success = true;
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, ip, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
+            await mongoLogDAO.sendLog(userId, apiType.account.change_pw, ip, 
+                JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
         else {
             resultFormat.errmsg = "Wrong Password";
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, ip, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
+            await mongoLogDAO.sendLog(userId, apiType.account.change_pw, ip, 
+                JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
     }
     else if(Object.values(foundSession).length > 1){
         resultFormat.errmsg = "There is more than 1 row with same session id in session store";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, ip, 
+        await mongoLogDAO.sendLog(userId, apiType.account.change_pw, ip, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
     else{ // Object.values(foundSession).length == 0
         resultFormat.errmsg = "The session id is invalid";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, ip, 
+        await mongoLogDAO.sendLog(userId, apiType.account.change_pw, ip, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
 });
 
 router.get("/refreshsession", async(req,res)=>{
+    let userId;
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
@@ -601,38 +608,43 @@ router.get("/refreshsession", async(req,res)=>{
     const ip = req.headers['x-forwarded-for'];
 
     const sessionId = req.cookies.sessionId;
-    const foundSessionLen = await accountModule.checkSessionWithSessionIdRetLen(sessionId);
+    const foundSession = await accountModule.checkSessionWithSessionIdRetObj(sessionId);
 
-    if(foundSessionLen == 1){
+    // if session exist get user id
+    if(Object.values(foundSession).length > 0){
+        userId = JSON.parse(foundSession[0].session).user.id;
+    }
+
+    if(Object.values(foundSession).length == 1){
         // if session is valid.
         const err_touch = await mongoStore.touch(req.cookies.sessionId, sessionObj);
         if (err_touch) {
             console.log(err_touch);
             resultFormat.errmsg = "There is exception in mongoStore.session touch";
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(reqId, apiType.account.refresh_session, ip, 
+            await mongoLogDAO.sendLog(userId, apiType.account.refresh_session, ip, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
         else {
             resultFormat.success = true;
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(reqId, apiType.account.refresh_session, ip, 
+            await mongoLogDAO.sendLog(userId, apiType.account.refresh_session, ip, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
     }
-    else if(foundSessionLen > 1){
+    else if(Object.values(foundSession).length > 1){
         resultFormat.errmsg = "There is more than 1 row with same session id in session store";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.refresh_session, ip, 
+        await mongoLogDAO.sendLog(userId, apiType.account.refresh_session, ip, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
-    else{ // foundSessionLen == 0
+    else{ // Object.values(foundSession).length == 0
         resultFormat.errmsg = "The session id is invalid";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.refresh_session, ip, 
+        await mongoLogDAO.sendLog(userId, apiType.account.refresh_session, ip, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -643,7 +655,6 @@ router.get("/checksession", async (req,res)=>{
         "success" : false,
         "errmsg" : "empty",
         "validity" : false,
-        "id" : "",
     };
     const ip = req.headers['x-forwarded-for'];
 
@@ -658,41 +669,40 @@ router.get("/checksession", async (req,res)=>{
         if (res_loginSel.rows.length == 0) {
             resultFormat.errmsg = "There is no corresponding Id";
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(reqId, apiType.account.check_session, ip, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
+            await mongoLogDAO.sendLog(userInfo.id, apiType.account.check_session, ip, 
+                JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
         else {
             if (res_loginSel.rows[0].pw == userInfo.pw) {
                 resultFormat.success = true;
                 resultFormat.validity = true;
-                resultFormat.id = userInfo.id;
                 res.send(resultFormat);
-                await mongoLogDAO.sendLog(reqId, apiType.account.check_session, ip, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
+                await mongoLogDAO.sendLog(userInfo.id, apiType.account.check_session, ip,
+                    JSON.stringify(req.body), JSON.stringify(resultFormat));
                 return;
             }
             else {
                 resultFormat.errmsg = "Wrong Password";
                 res.send(resultFormat);
-                await mongoLogDAO.sendLog(reqId, apiType.account.check_session, ip, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
+                await mongoLogDAO.sendLog(userInfo.id, apiType.account.check_session, ip,
+                    JSON.stringify(req.body), JSON.stringify(resultFormat));
                 return;
             }
         }
     }
-    else if(Object.values(foundSession).length > 1){
+    else if (Object.values(foundSession).length > 1) {
         resultFormat.errmsg = "There is more than 1 row with same session id in session store";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.check_session, ip, 
+        await mongoLogDAO.sendLog("", apiType.account.check_session, ip,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
-    else{
+    else {
         resultFormat.success = true;
         resultFormat.errmsg = "The session id is invalid";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.check_session, ip, 
+        await mongoLogDAO.sendLog("", apiType.account.check_session, ip,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -709,7 +719,7 @@ router.post("/test", async (req,res)=>{
     console.log(req.sessionID);
 
     res.send(resultFormat);
-    await mongoLogDAO.sendLog(reqId, "test", ip, 
+    await mongoLogDAO.sendLog("testLog", "test", ip, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
