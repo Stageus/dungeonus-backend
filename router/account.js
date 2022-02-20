@@ -699,7 +699,7 @@ router.get("/checksession", async (req,res)=>{
 })
 
 // router to only test
-router.post("/test", (req,res)=>{
+router.post("/test", async (req,res)=>{
     const resultFormat = {
         "success" : false,
         "errmsg" : "test",
