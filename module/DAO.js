@@ -65,3 +65,56 @@ module.exports.update1ColWithId = (tableType, colName1, colVal1, id)=>{
 
     return client.query(text, values);
 }
+
+//posting table 
+module.exports.selectAllPostings = (tableType)=>{
+    const text = 'SELECT * FROM ' + tableType
+
+    return client.query(text);
+}
+
+module.exports.selectWithPostingIndex = (tableType, postingIndex) => {
+    const text = 'SELECT * FROM ' + tableType + ' WHERE posting_index=$1';
+    const values = [postingIndex];
+
+    return client.query(text, values);
+}
+
+module.exports.insertPosting = (id, title, content, boardIndex) => {
+    const text = 'INSERT INTO ' + DBUtil.postingTable
+        + '(id, title, content, board_index, date) VALUES($1, $2, $3, $4, CURRENT_TIMESTAMP)';
+    const values = [id, title, content, boardIndex];
+
+    return client.query(text, values);
+}
+
+module.exports.deletePosting = (postingIndex) => {
+    const text = 'DELETE FROM '+ DBUtil.postingTable +' WHERE posting_index=$1';
+    const values = [postingIndex];
+    
+    return client.query(text, values);
+}
+
+module.exports.updatePostingWithPostingIndex = (title, content, postingIndex) =>{
+    const text = 'UPDATE '+ DBUtil.postingTable 
+        + ' SET title=$1, content=$2 WHERE posting_index=$3';
+    const values = [title, content, postingIndex];
+
+    return client.query(text, values);
+}
+
+//comment table 
+module.exports.insertComment = (id,content, boardIndex, postingIndex) => {
+    const text = 'INSERT INTO ' + DBUtil.commentTable
+        + '(id, content, board_index, posting_index, date) VALUES($1, $2, $3, $4, CURRENT_TIMESTAMP)';
+    const values = [id, content, boardIndex, postingIndex];
+
+    return client.query(text, values);
+}
+
+module.exports.deleteComment = (postingIndex) => {
+    const text = 'DELETE FROM '+ DBUtil.commentTable +' WHERE comment_index=$1';
+    const values = [postingIndex];
+    
+    return client.query(text, values);
+}

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOARD API TEST</title>
+</head>
+<body>
+    <div>
+        <h2>게시글 작성 페이지 실험 칸이다.</h2>
+        <input type="text" id="boardIndex" placeholder="게시판 인덱스 정수로">
+        <input type="text" id="userId" placeholder="유저 아이디">
+        <input type="text" id="title" placeholder="제목 작성">
+        <input type="text" id="content" placeholder="내용 작성">
+        <input type="button" value="게시글 작성" onclick="addPosting()">
+    </div>
+    <div>
+        <h2>여기는 게시글 삭제 기능을 보여준다.</h2>
+        <input type="text" id="postingIndex" placeholder="포스팅 인덱스 정수로">
+        <input type="button" value="게시글 삭제" onclick="delPosting()">
+    </div>
+    <div>
+        <h2>여기는 인덱스 번호를 이용, 특정 페이지를 보여준다.</h2>
+        <input type="text" id="showPosting" placeholder="포스팅 인덱스 정수로">
+        <input type="button" value="페이지 찾기" onclick="showPostingByIndex()">
+        <div id="postingInfo"></div>
+    </div>
+    <div>
+        <h3>게시물 수정 기능</h3>
+        <input type="text" id="usePostingIndex" placeholder="바꿀 포스팅 인덱스">
+        <input type="text" id="newTitle" placeholder="새로운 제목 작성">
+        <input type="text" id="newContent" placeholder="새로운 내용 작성">
+        <input type="button" value="게시물 수정" onclick="fixPosting()">
+    </div>
+    <div>
+        <h2>여기는 존재하는 모든 페이지를 보여준다.</h2>
+        <input type="button" value="게시글 모두 불러오기" onclick="showAllPosting()">
+    </div>
+</body>
+<script>
+    const addPosting = () => {
+        fetch("/board", {
+            "method": "POST",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": userId.value,
+                    "title": title.value,
+                    "content": content.value,
+                    "boardIndex": boardIndex.value
+                })
+            })
+            .then(response => response.json())
+            .then(res => {
+                console.log(res)
+            });
+    }
+
+    const delPosting = () => {
+        fetch("/board", {
+        "method": "DELETE",
+        "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": JSON.stringify({
+                "postingIndex": postingIndex.value
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+            console.log(result);
+        });
+    }
+
+    const showPostingByIndex = () => {
+        const parameter = showPosting.value;
+        const url = "/board?index="+ parameter.toString(); 
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data)
+            if (data.success == false) {
+                console.log(data.errmsg)
+            } else {
+                const titleBox = document.createElement("div");
+                const contentBox = document.createElement("div");
+                titleBox.innerHTML = data.posting[0].title;
+                contentBox.innerHTML = data.posting[0].content
+                const postingBox = document.getElementById("postingInfo");
+                postingBox.appendChild(titleBox);
+                postingBox.appendChild(contentBox);
+            }
+        })
+    }
+
+    const fixPosting = () => {
+        fetch("/board", {
+            "method": "PUT",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": "ji", //api 요청한 사람의 아이디 
+                    "postingIndex": usePostingIndex.value,
+                    "title": newTitle.value,
+                    "content": newContent.value
+                })
+            })
+            .then(response => response.json())
+            .then(res => {
+                console.log(res)
+                console.log(res.errmsg);
+            });
+    } 
+
+    const showAllPosting = () => {
+        fetch("/board/total")
+        .then(response => response.json())
+        .then(res => {
+            console.log(res);
+            console.log(res.posting_list);
+        });
+    }
+
+</script>
+</html>
