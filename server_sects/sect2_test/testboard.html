@@ -58,6 +58,12 @@
         <input type="text" id="searchBar" placeholder="검색어 입력">
         <input type="button" value="포스팅 검색" onclick="searchPosting()">
     </div>
+    <div>
+        <h1>프로필 페이지 연관 ㅋㅋㅋ</h1>
+        <input type="text" id="userIdforP" placeholder="프로필용 유저 아이디">
+        <input type="button" value="내가 쓴 모든 게시글" onclick="myAllPostings()">
+        <input type="button" value="내가 쓴 모든 댓글" onclick="myAllComments()">
+    </div>
 </body>
 <script>
     const addPosting = () => {
@@ -257,5 +263,41 @@
                 console.log(res.errmsg)
             });
     }
+
+    const myAllPostings = () => {
+        fetch("/search/myposting", {
+            "method": "POST",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": userIdforP.value
+                })
+            })
+            .then(response => response.json())
+            .then(res => {
+                console.log(res)
+                console.log(res.errmsg)
+            });
+    }
+
+    const myAllComments = () => {
+        fetch("/search/mycomment", {
+            "method": "POST",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": userIdforP.value
+                })
+            })
+            .then(response => response.json())
+            .then(res => {
+                console.log(res)
+                console.log(res.errmsg)
+            });
+    }
+
+    
 </script>
 </html>

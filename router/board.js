@@ -139,7 +139,7 @@ router.get("/total", (req, res) => {
         res.send(resultFormat);
     })
 });
-
+//get postings sorted by board index 
 router.get("/peer", (req,res) => {
     const boardIndex = req.query.index;
     const resultFormat = {
@@ -164,7 +164,7 @@ router.get("/peer", (req,res) => {
     })
 });
 
-//search lists by a title of posting (not yet)
+//search lists by a title of posting
 router.post("/search", (req,res) => {
     const reqWord = req.body.word;
     const resultFormat = {

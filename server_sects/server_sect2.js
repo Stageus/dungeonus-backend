@@ -10,4 +10,7 @@ app.use("/board", board);
 const comment = require("../router/comment.js");
 app.use("/comment", comment);
 
+const search = require("../router/search.js");
+app.use("/search", search)
+
 module.exports = app;

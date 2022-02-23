@@ -116,6 +116,7 @@ module.exports.searchWithTitle = (word) => {
 }
 
 
+
 //comment table 
 module.exports.selectAllComments = (tableType)=>{
     const text = 'SELECT * FROM ' + tableType
@@ -160,4 +161,6 @@ module.exports.updateCommentWithIndex = (content, commentIndex) =>{
 
     return client.query(text, values);
 }
+
+
 
