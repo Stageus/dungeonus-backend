@@ -36,6 +36,27 @@
     <div>
         <h2>여기는 존재하는 모든 페이지를 보여준다.</h2>
         <input type="button" value="게시글 모두 불러오기" onclick="showAllPosting()">
+        <input type="text" id="boardIndexforSearch" placeholder="게시판 인덱스 정수로">
+        <input type="button" value="게시판별로 모두 불러오기" onclick="showByBoardIndex()">
+    </div>
+    <div>
+        <h3>댓글 제대로 날아오남</h3>
+        <input type="text" id="userIdforC" placeholder="댓글용 유저 아이디">
+        <input type="text" id="contentforC" placeholder="댓글 내용">
+        <input type="text" id="newContentforC" placeholder="댓글 수정용 내용">
+        <input type="text" id="boardIndexforC" placeholder="댓글용 게시판 인덱스">
+        <input type="text" id="postingIndexforC" placeholder="댓글용 포스팅 인덱스">
+        <input type="text" id="commentIndexforC" placeholder="댓글 인덱스">
+        <input type="button" value="포스팅별로 댓글 불러오기" onclick="showComment()">
+        <input type="button" value="모든 댓글 불러오기" onclick="showAllComments()">
+        <input type="button" value="댓글 작성" onclick="addComment()">
+        <input type="button" value="댓글 수정" onclick="fixComment()">
+        <input type="button" value="댓글 삭제" onclick="delComment()">
+    </div>
+    <div>
+        <h3>포스팅 검색 기능</h3>
+        <input type="text" id="searchBar" placeholder="검색어 입력">
+        <input type="button" value="포스팅 검색" onclick="searchPosting()">
     </div>
 </body>
 <script>
@@ -123,6 +144,118 @@
             console.log(res.posting_list);
         });
     }
+    
+    const showByBoardIndex = () => {
+        const parameter = boardIndexforSearch.value;
+        const url = "/board/peer?index="+ parameter.toString(); 
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data)
+        })
+    }
+    //from now on, there are comments APIs.
+    const showComment = () => {
+        const parameter = postingIndexforC.value;
+        const url = "/comment?index="+ parameter.toString(); 
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data)
+            if (data.success == false) {
+                console.log(data.errmsg)
+            }  
+        })
+    }
 
+    const showAllComments = () => {
+        fetch("/comment/total")
+        .then(response => response.json())
+        .then(res => {
+            console.log(res.comment_list);
+            if (res.success == false) {
+                console.log(res.errmsg)
+            }
+        });
+    }
+
+    const addComment = () => {
+        fetch("/comment", {
+            "method": "POST",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": userIdforC.value,
+                    "content": contentforC.value,
+                    "boardIndex": boardIndexforC.value,
+                    "postingIndex": postingIndexforC.value,
+                })
+            })
+            .then(response => response.json())
+            .then(res => {
+                console.log(res)
+                if (res.success == false) {
+                console.log(res.errmsg)
+                }
+            });
+    }
+
+    const fixComment = () => {
+        fetch("/comment", {
+            "method": "PUT",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": userIdforC.value, //api 요청한 사람의 아이디 
+                    "commentIndex": commentIndexforC.value,
+                    "newContent": newContentforC.value
+                })
+            })
+            .then(response => response.json())
+            .then(res => {
+                console.log(res)
+                if (res.success == false) {
+                console.log(res.errmsg)
+                }
+            });
+    }
+
+    const delComment = () => {
+        fetch("/comment", {
+        "method": "DELETE",
+        "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": JSON.stringify({
+                "commentIndex": commentIndexforC.value
+            })
+        })
+        .then(response => response.json())
+        .then(res => {
+            console.log(res);
+            if (res.success == false) {
+                console.log(res.errmsg)
+            }
+        });
+    }
+
+    const searchPosting = () => {
+        fetch("/board/search", {
+            "method": "POST",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "word": searchBar.value
+                })
+            })
+            .then(response => response.json())
+            .then(res => {
+                console.log(res)
+                console.log(res.errmsg)
+            });
+    }
 </script>
 </html>

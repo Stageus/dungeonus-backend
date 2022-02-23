@@ -6,7 +6,7 @@ const {DBInfo, DBUtil} = require("../module/databaseModule");
 const url = require("url");
 const querystring = require('querystring');
 
-//get a positing by posting Index
+//get a posting by posting Index
 router.get("/", (req,res) => {
     const postingIndex = req.query.index;
     const resultFormat = {
@@ -40,7 +40,7 @@ router.post("/", (req,res) => {
 
     const resultFormat = {
         "success" : false,
-        "errmsg" : "none"
+        "errmsg" : ""
     };
 
     dao.insertPosting(reqId, reqTitle, reqContent, reqBoardIndex)
@@ -66,7 +66,7 @@ router.put("/", (req,res) => {
         "success" : false,
         "errmsg" : ""
     }
-
+    //인덱스 조회 시 포스팅이 존재하지 않을때 
     dao.selectWithPostingIndex(DBUtil.postingTable, reqIndex)
     .then(res_sel=> {
         //console.log(res.rows[0])
@@ -76,7 +76,6 @@ router.put("/", (req,res) => {
         } else {
             dao.updatePostingWithPostingIndex(reqTitle, reqContent, reqIndex)
             .then(res_upd=>{
-                console.log(res_upd);
                 if(res_upd.rowCount == 0){
                     resultFormat.errmsg = "problems occured while updating";
                 }
@@ -92,10 +91,8 @@ router.put("/", (req,res) => {
         }
     })
     .catch (err => {
-        console.log("7")
         resultFormat.errmsg = err
-        console.log("8")
-        res.send(resultFormat)
+        res_sel.send(resultFormat)
     })
 });
 
@@ -143,9 +140,55 @@ router.get("/total", (req, res) => {
     })
 });
 
+router.get("/peer", (req,res) => {
+    const boardIndex = req.query.index;
+    const resultFormat = {
+        "success": false,
+        "errmsg": "",
+        "posting_list": []
+    }
+    // 게시판 인덱스 존재하는지 확인? 
+    dao.selectWithBoardIndex(DBUtil.postingTable, boardIndex)
+    .then(res_selb => {
+        if (res_selb.rows.length == 0) {
+            resultFormat.errmsg = "there is no posting in this board"
+        } else {
+            resultFormat.success = true
+            resultFormat.posting_list = res_selb.rows
+        }
+        res.send(resultFormat)
+    })
+    .catch (err => {
+        resultFormat.errmsg = err
+        res.send(resultFormat)
+    })
+});
+
 //search lists by a title of posting (not yet)
 router.post("/search", (req,res) => {
-    
+    const reqWord = req.body.word;
+    const resultFormat = {
+        "success": false,
+        "errmsg": "",
+        "posting_list": []
+    }
+
+    dao.searchWithTitle(reqWord)
+    .then(res_sel => {
+        if (res_sel.rows.length == 0) {
+            resultFormat.errmsg = "no results which contains this search word"
+        } else {
+            resultFormat.success = true;
+            resultFormat.posting_list = res_sel.rows;
+        }
+        res.send(resultFormat)
+    })
+    .catch(e => {
+        resultFormat.errmsg  = e;
+        res.send(resultFormat)
+    })
+
+
 });
 
 module.exports = router;

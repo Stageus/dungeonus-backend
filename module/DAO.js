@@ -79,6 +79,13 @@ module.exports.selectWithPostingIndex = (tableType, postingIndex) => {
     return client.query(text, values);
 }
 
+module.exports.selectWithBoardIndex = (tableType, boardIndex) => {
+    const text = 'SELECT * FROM ' + tableType + ' WHERE board_index=$1';
+    const values = [boardIndex];
+
+    return client.query(text, values);
+}
+
 module.exports.insertPosting = (id, title, content, boardIndex) => {
     const text = 'INSERT INTO ' + DBUtil.postingTable
         + '(id, title, content, board_index, date) VALUES($1, $2, $3, $4, CURRENT_TIMESTAMP)';
@@ -102,8 +109,29 @@ module.exports.updatePostingWithPostingIndex = (title, content, postingIndex) =>
     return client.query(text, values);
 }
 
+module.exports.searchWithTitle = (word) => {
+    const text = "SELECT * FROM " + DBUtil.postingTable + " WHERE title LIKE '%" + word + "%';"
+
+    return client.query(text);
+}
+
+
 //comment table 
-module.exports.insertComment = (id,content, boardIndex, postingIndex) => {
+module.exports.selectAllComments = (tableType)=>{
+    const text = 'SELECT * FROM ' + tableType
+
+    return client.query(text);
+}
+
+module.exports.selectCommentsWithPostingIndex = (tableType, postingIndex) => {
+    const text = 'SELECT * FROM ' + tableType + ' WHERE posting_index=$1';
+    const values = [postingIndex];
+
+    return client.query(text, values);
+}
+
+
+module.exports.insertComment = (id, content, boardIndex, postingIndex) => {
     const text = 'INSERT INTO ' + DBUtil.commentTable
         + '(id, content, board_index, posting_index, date) VALUES($1, $2, $3, $4, CURRENT_TIMESTAMP)';
     const values = [id, content, boardIndex, postingIndex];
@@ -111,9 +139,25 @@ module.exports.insertComment = (id,content, boardIndex, postingIndex) => {
     return client.query(text, values);
 }
 
-module.exports.deleteComment = (postingIndex) => {
+module.exports.deleteComment = (commentIndex) => {
     const text = 'DELETE FROM '+ DBUtil.commentTable +' WHERE comment_index=$1';
-    const values = [postingIndex];
+    const values = [commentIndex];
     
     return client.query(text, values);
 }
+
+module.exports.selectWithCommentIndex = (tableType, commentIndex) => {
+    const text = 'SELECT * FROM ' + tableType + ' WHERE comment_index=$1';
+    const values = [commentIndex];
+
+    return client.query(text, values);
+}
+
+module.exports.updateCommentWithIndex = (content, commentIndex) =>{
+    const text = 'UPDATE '+ DBUtil.commentTable 
+        + ' SET content=$1 WHERE comment_index=$2';
+    const values = [content, commentIndex];
+
+    return client.query(text, values);
+}
+
