@@ -28,6 +28,9 @@
     <input type="button" value="create account" onclick="createAccount()">
     <input type="button" value="total profile" onclick="totalProfile()">
     <input type="button" value="change password" onclick="changePw()">
+    <br>
+    <input type="button" value="show profile" onclick="showProfile()">
+    <input type="button" value="modify profile" onclick="modifyProfile()">
 </body>
 <script>
     const inputId = document.getElementById("inputId");
@@ -187,6 +190,47 @@
             "headers": {
                     "Content-Type": "application/json"
                 },
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    }
+
+    const showProfile = () =>{
+        fetch("/profile", {
+            "method" : "POST",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": inputId.value,
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+            });
+    }
+
+    const modifyProfile = () =>{
+        fetch("/profile", {
+            "method" : "PUT",
+            "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": inputId.value,
+                    "profile": {
+                        name : inputName.value,
+                        generation : inputGen.value,
+                        course : {},
+                        introduction : 'intro',
+                        github_link: 'git',
+                        youtube_link: 'you',
+                        insta_link: 'ins',
+                    },
+                })
             })
             .then(response => response.json())
             .then(result => {

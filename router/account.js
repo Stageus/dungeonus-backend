@@ -13,7 +13,6 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
-
 const mongoLogDAO = require("../module/mongoLogDAO");
 
 // session & cookie
@@ -32,7 +31,6 @@ const cookieKeyName = 'sessionId';
 router.post("/login", async (req,res) =>{
     const reqId = req.body.id;
     const reqPw = req.body.pw;
-    const ip = req.headers['x-forwarded-for'];
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
@@ -48,7 +46,7 @@ router.post("/login", async (req,res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.login, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.login,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -56,7 +54,7 @@ router.post("/login", async (req,res) =>{
     if (res_loginSel.rows.length == 0) {
         resultFormat.errmsg = "There is no corresponding Id";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.login, ip,
+        await mongoLogDAO.sendLog(reqId, apiType.account.login,
              JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -64,7 +62,7 @@ router.post("/login", async (req,res) =>{
     if (res_loginSel.rows[0].pw != reqPw) {
         resultFormat.errmsg = "Wrong Password";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.login, ip,
+        await mongoLogDAO.sendLog(reqId, apiType.account.login,
              JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -88,7 +86,7 @@ router.post("/login", async (req,res) =>{
     console.log(req.session.id);
     console.log(req.session.user);
     res.send(resultFormat);
-    await mongoLogDAO.sendLog(reqId, apiType.account.login, ip,
+    await mongoLogDAO.sendLog(reqId, apiType.account.login,
         JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
@@ -98,7 +96,6 @@ router.post("/logout", async (req,res)=>{
         "success" : false,
         "errmsg" : "empty",
     };
-    const ip = req.headers['x-forwarded-for'];
 
     // Delete cookies and sessions after check those.
     req.session.destroy();
@@ -107,7 +104,7 @@ router.post("/logout", async (req,res)=>{
 
     resultFormat.success = true;
     res.send(resultFormat);
-    await mongoLogDAO.sendLog(reqId, apiType.account.logout, ip,
+    await mongoLogDAO.sendLog(reqId, apiType.account.logout,
         JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
@@ -117,7 +114,6 @@ router.delete("/", async (req, res) =>{
         "success" : false,
         "errmsg" : "empty",
     };
-    const ip = req.headers['x-forwarded-for'];
 
     let res_loginSel;
     try{
@@ -128,7 +124,7 @@ router.delete("/", async (req, res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -136,7 +132,7 @@ router.delete("/", async (req, res) =>{
     if (res_loginSel.rows.length == 0) {
         resultFormat.errmsg = "There is no corresponding Id";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -150,7 +146,7 @@ router.delete("/", async (req, res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -158,7 +154,7 @@ router.delete("/", async (req, res) =>{
     if (res_profSel.rows.length == 0) {
         resultFormat.errmsg = "There is no corresponding Id";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -172,7 +168,7 @@ router.delete("/", async (req, res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -180,7 +176,7 @@ router.delete("/", async (req, res) =>{
     if (res_loginDel.rows.rowCount == 0) {
         resultFormat.errmsg = "There is occured trouble in delete";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -194,7 +190,7 @@ router.delete("/", async (req, res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -202,14 +198,14 @@ router.delete("/", async (req, res) =>{
     if (res_profDel.rows.rowCount == 0) {
         resultFormat.errmsg = "There is occured trouble in delete";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
 
     resultFormat.success = true;
     res.send(resultFormat);
-    await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, ip, 
+    await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
@@ -222,7 +218,6 @@ router.put("/", async (req,res)=>{
         "success" : false,
         "errmsg" : "empty",
     };
-    const ip = req.headers['x-forwarded-for'];
 
     let res_profSel;
     try{
@@ -233,7 +228,7 @@ router.put("/", async (req,res)=>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -241,21 +236,21 @@ router.put("/", async (req,res)=>{
     if (res_profSel.rows.length == 0) {
         resultFormat.errmsg = "There is no corresponding Id";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
 
     let res_Update;
     try{
-        res_Update = await dao.updateProfileWithId(reqName, reqGeneration, reqCourse, reqId);
+        res_Update = await dao.updateProfileFromAdminWithId(reqName, reqGeneration, reqCourse, reqId);
     }
     catch(e){
-        console.log("Exception in put router dao.updateProfileWithId :");
+        console.log("Exception in put router dao.updateProfileFromAdminWithId :");
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -263,14 +258,14 @@ router.put("/", async (req,res)=>{
     if (res_Update.rowCount == 0) {
         resultFormat.errmsg = "There is occured trouble in update";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
 
     resultFormat.success = true;
     res.send(resultFormat);
-    await mongoLogDAO.sendLog(reqId, apiType.account.modify_account, ip, 
+    await mongoLogDAO.sendLog(reqId, apiType.account.modify_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
@@ -283,7 +278,6 @@ router.post("/", async (req,res)=>{
         "success" : false,
         "errmsg" : "empty",
     };
-    const ip = req.headers['x-forwarded-for'];
 
     // check and insert profile table
     let res_profSel;
@@ -295,7 +289,7 @@ router.post("/", async (req,res)=>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -304,7 +298,7 @@ router.post("/", async (req,res)=>{
         resultFormat.errmsg = "Id is already exist in "
             + DBUtil.profileTable + " table";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -318,7 +312,7 @@ router.post("/", async (req,res)=>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -326,7 +320,7 @@ router.post("/", async (req,res)=>{
     if (res_profIns.rowCount == 0) {
         resultFormat.errmsg = "There is occured trouble in insert";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.create_account, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -344,7 +338,7 @@ router.post("/", async (req,res)=>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -353,7 +347,7 @@ router.post("/", async (req,res)=>{
         resultFormat.errmsg = "Id is already exist in "
             + DBUtil.loginTable + " table";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -379,7 +373,7 @@ router.post("/", async (req,res)=>{
             console.log(e_inCatch);
             resultFormat.errmsg = e_inCatch;
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(reqId, apiType.account.create_account, ip, 
+            await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
@@ -387,14 +381,14 @@ router.post("/", async (req,res)=>{
         if (res_profDel.rows.length == 0) {
             resultFormat.errmsg = "There is trouble in delete";
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(reqId, apiType.account.create_account, ip, 
+            await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
 
         resultFormat.errmsg = "Completely delete inserted profile table";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -402,14 +396,14 @@ router.post("/", async (req,res)=>{
     if (res_loginIns.rowCount == 0) {
         resultFormat.errmsg = "There is occured trouble in insert";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.create_account, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
     
     resultFormat.success = true;
     res.send(resultFormat);
-    await mongoLogDAO.sendLog(reqId, apiType.account.create_account, ip, 
+    await mongoLogDAO.sendLog(reqId, apiType.account.create_account, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
     return;
 });
@@ -420,7 +414,6 @@ router.get("/total", async (req, res) =>{
         "errmsg" : "empty",
         "id_list" : [],
     };
-    const ip = req.headers['x-forwarded-for'];
 
     let res_profSel;
     try{
@@ -431,7 +424,7 @@ router.get("/total", async (req, res) =>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog("", apiType.account.total_accont, ip, 
+        await mongoLogDAO.sendLog("", apiType.account.total_accont,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -439,7 +432,7 @@ router.get("/total", async (req, res) =>{
     resultFormat.id_list = res_profSel.rows;
     resultFormat.success = true;
     res.send(resultFormat);
-    await mongoLogDAO.sendLog("", apiType.account.total_accont, ip, 
+    await mongoLogDAO.sendLog("", apiType.account.total_accont,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
@@ -451,7 +444,6 @@ router.post("/changepw", async (req,res)=>{
         "success" : false,
         "errmsg" : "empty",
     };
-    const ip = req.headers['x-forwarded-for'];
 
     // check id is exist
     let res_loginSel;
@@ -463,7 +455,7 @@ router.post("/changepw", async (req,res)=>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -471,7 +463,7 @@ router.post("/changepw", async (req,res)=>{
     if (res_loginSel.rows.length == 0) {
         resultFormat.errmsg = "There is no corresponding Id";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -480,7 +472,7 @@ router.post("/changepw", async (req,res)=>{
     if (res_loginSel.rows[0].pw != reqCurPw) {
         resultFormat.errmsg = "Wrong password";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -489,7 +481,7 @@ router.post("/changepw", async (req,res)=>{
     if(reqAftPw.replace(/ /gi, "") == '' || reqAftPw.replace(/ /gi, "")!= reqAftPw){
         resultFormat.errmsg = "After password is invalid format";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -504,7 +496,7 @@ router.post("/changepw", async (req,res)=>{
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -512,14 +504,14 @@ router.post("/changepw", async (req,res)=>{
     if (res_loginUdt.rowCount == 0) {
         resultFormat.errmsg = "There is trouble in update";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, ip, 
+        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
 
     resultFormat.success = true;
     res.send(resultFormat);
-    await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, ip, 
+    await mongoLogDAO.sendLog(reqId, apiType.account.change_pw,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
@@ -530,7 +522,6 @@ router.get("/autologin", async (req, res)=>{
         "errmsg" : "empty",
         "session_id" : "empty",
     };
-    const ip = req.headers['x-forwarded-for'];
     
     // TODO: using cookie's session id, 
     // find user info in current login database.
@@ -550,7 +541,7 @@ router.get("/autologin", async (req, res)=>{
         if (res_loginSel.rows.length == 0) {
             resultFormat.errmsg = "There is no corresponding Id";
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(userId, apiType.account.change_pw, ip, 
+            await mongoLogDAO.sendLog(userId, apiType.account.change_pw, 
                 JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
@@ -571,14 +562,14 @@ router.get("/autologin", async (req, res)=>{
 
             resultFormat.success = true;
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(userId, apiType.account.change_pw, ip, 
+            await mongoLogDAO.sendLog(userId, apiType.account.change_pw, 
                 JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
         else {
             resultFormat.errmsg = "Wrong Password";
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(userId, apiType.account.change_pw, ip, 
+            await mongoLogDAO.sendLog(userId, apiType.account.change_pw,
                 JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
@@ -586,14 +577,14 @@ router.get("/autologin", async (req, res)=>{
     else if(Object.values(foundSession).length > 1){
         resultFormat.errmsg = "There is more than 1 row with same session id in session store";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(userId, apiType.account.change_pw, ip, 
+        await mongoLogDAO.sendLog(userId, apiType.account.change_pw,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
     else{ // Object.values(foundSession).length == 0
         resultFormat.errmsg = "The session id is invalid";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(userId, apiType.account.change_pw, ip, 
+        await mongoLogDAO.sendLog(userId, apiType.account.change_pw,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -605,7 +596,6 @@ router.get("/refreshsession", async(req,res)=>{
         "success" : false,
         "errmsg" : "empty",
     };
-    const ip = req.headers['x-forwarded-for'];
 
     const sessionId = req.cookies.sessionId;
     const foundSession = await accountModule.checkSessionWithSessionIdRetObj(sessionId);
@@ -622,14 +612,14 @@ router.get("/refreshsession", async(req,res)=>{
             console.log(err_touch);
             resultFormat.errmsg = "There is exception in mongoStore.session touch";
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(userId, apiType.account.refresh_session, ip, 
+            await mongoLogDAO.sendLog(userId, apiType.account.refresh_session, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
         else {
             resultFormat.success = true;
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(userId, apiType.account.refresh_session, ip, 
+            await mongoLogDAO.sendLog(userId, apiType.account.refresh_session, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
@@ -637,14 +627,14 @@ router.get("/refreshsession", async(req,res)=>{
     else if(Object.values(foundSession).length > 1){
         resultFormat.errmsg = "There is more than 1 row with same session id in session store";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(userId, apiType.account.refresh_session, ip, 
+        await mongoLogDAO.sendLog(userId, apiType.account.refresh_session,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
     else{ // Object.values(foundSession).length == 0
         resultFormat.errmsg = "The session id is invalid";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(userId, apiType.account.refresh_session, ip, 
+        await mongoLogDAO.sendLog(userId, apiType.account.refresh_session,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -656,7 +646,6 @@ router.get("/checksession", async (req,res)=>{
         "errmsg" : "empty",
         "validity" : false,
     };
-    const ip = req.headers['x-forwarded-for'];
 
     const sessionId = req.cookies.sessionId;
     const foundSession = await accountModule.checkSessionWithSessionIdRetObj(sessionId);
@@ -669,7 +658,7 @@ router.get("/checksession", async (req,res)=>{
         if (res_loginSel.rows.length == 0) {
             resultFormat.errmsg = "There is no corresponding Id";
             res.send(resultFormat);
-            await mongoLogDAO.sendLog(userInfo.id, apiType.account.check_session, ip, 
+            await mongoLogDAO.sendLog(userInfo.id, apiType.account.check_session,
                 JSON.stringify(req.body), JSON.stringify(resultFormat));
             return;
         }
@@ -678,14 +667,14 @@ router.get("/checksession", async (req,res)=>{
                 resultFormat.success = true;
                 resultFormat.validity = true;
                 res.send(resultFormat);
-                await mongoLogDAO.sendLog(userInfo.id, apiType.account.check_session, ip,
+                await mongoLogDAO.sendLog(userInfo.id, apiType.account.check_session,
                     JSON.stringify(req.body), JSON.stringify(resultFormat));
                 return;
             }
             else {
                 resultFormat.errmsg = "Wrong Password";
                 res.send(resultFormat);
-                await mongoLogDAO.sendLog(userInfo.id, apiType.account.check_session, ip,
+                await mongoLogDAO.sendLog(userInfo.id, apiType.account.check_session,
                     JSON.stringify(req.body), JSON.stringify(resultFormat));
                 return;
             }
@@ -694,7 +683,7 @@ router.get("/checksession", async (req,res)=>{
     else if (Object.values(foundSession).length > 1) {
         resultFormat.errmsg = "There is more than 1 row with same session id in session store";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog("", apiType.account.check_session, ip,
+        await mongoLogDAO.sendLog("", apiType.account.check_session,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -702,7 +691,7 @@ router.get("/checksession", async (req,res)=>{
         resultFormat.success = true;
         resultFormat.errmsg = "The session id is invalid";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog("", apiType.account.check_session, ip,
+        await mongoLogDAO.sendLog("", apiType.account.check_session,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -714,12 +703,11 @@ router.post("/test", async (req,res)=>{
         "success" : false,
         "errmsg" : "test",
     };
-    const ip = req.headers['x-forwarded-for'];
 
     console.log(req.sessionID);
 
     res.send(resultFormat);
-    await mongoLogDAO.sendLog("testLog", "test", ip, 
+    await mongoLogDAO.sendLog("testLog", "test", 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 

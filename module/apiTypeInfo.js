@@ -13,7 +13,18 @@ const APIInfo = {
     },
     board: {
 
-    }
+    },
+    comment: {
+
+    },
+    profile: {
+        show: "post_profile",
+        modify: "put_profile",
+    },
+    search:{
+        search_board: "post_myboard",
+        search_comment: "post_mycomment",
+    },
 }
 
 module.exports = APIInfo;

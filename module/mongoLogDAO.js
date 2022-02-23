@@ -1,12 +1,11 @@
 const LogModel = require('../module/mongoLogModel');
 
-module.exports.sendLog = async (id, api, ip, req, res) => {
+module.exports.sendLog = async (id, api, req, res) => {
     let result = false;
     const logContent ={
         "log_time": new Date(),
         "user_id": id,
         "api_type": api,
-        "user_ip": ip,
         "req_data": req,
         "res_data": res,
     };

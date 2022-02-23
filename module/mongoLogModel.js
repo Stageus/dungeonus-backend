@@ -21,7 +21,6 @@ const logSchema = new mongoose.Schema({
     log_time: Date,
     user_id: String,
     api_type: String,
-    user_ip: String,
     req_data: String,
     res_data: String,
 })

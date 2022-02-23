@@ -24,10 +24,28 @@ module.exports.deleteWithId = (tableType, id) =>{
 }
 
 // profile table
-module.exports.updateProfileWithId = (name, generation, course, id) =>{
+module.exports.selectProfileWithId = (id) => {
+    const text = 'SELECT * FROM ' + DBUtil.profileTable + ' WHERE id=$1';
+    const values = [id];
+
+    return client.query(text, values);
+}
+
+module.exports.updateProfileFromAdminWithId = (name, generation, course, id) =>{
     const text = 'UPDATE '+ DBUtil.profileTable 
         + ' SET name=$1, generation=$2, course=$3 WHERE id=$4';
     const values = [name, generation, course, id];
+
+    return client.query(text, values);
+}
+
+module.exports.updateProfileWithId = (id, profile) => {
+    const text = 'UPDATE ' + DBUtil.profileTable
+        + ' SET name=$1, generation=$2, course=$3, introduction=$4,'
+        + ' github_link=$5, youtube_link=$6, insta_link=$7'
+        + ' WHERE id=$8';
+    const values = [profile.name, profile.generation, profile.course, profile.introduction,
+        profile.github_link, profile.youtube_link, profile.insta_link, id];
 
     return client.query(text, values);
 }
@@ -114,8 +132,6 @@ module.exports.searchWithTitle = (word) => {
 
     return client.query(text);
 }
-
-
 
 //comment table 
 module.exports.selectAllComments = (tableType)=>{
