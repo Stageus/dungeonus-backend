@@ -13,6 +13,7 @@ router.post("/", async (req,res)=>{
         "profile_list" : {},
     };
     
+    // bring profile data
     let res_profSel;
     try{
         res_profSel = await dao.selectProfileWithId(reqId);
@@ -27,6 +28,7 @@ router.post("/", async (req,res)=>{
         return;
     }
 
+    // check profile data is exist or (two or more)
     if(res_profSel.rows.length == 0){
         resultFormat.errmsg = "Correspond id is nothing";
         res.send(resultFormat);
