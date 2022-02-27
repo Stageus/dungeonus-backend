@@ -6,15 +6,15 @@ const dao = require("../module/DAO.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
 const sessionModule = require("../module/sessionModule");
 const apiType = require("../module/apiTypeInfo");
-
 const session = require('express-session');
 const mongoStore = require("../module/mongoSessionStore");
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(cookieParser());
 const mongoLogDAO = require("../module/mongoLogDAO");
 const checkSession = require("../module/checkSessionModule");
+
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({extended: false}));
 
 // session & cookie
 const sessionObj = session({
