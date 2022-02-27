@@ -5,6 +5,8 @@ const dao = require("../module/DAO.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
 const url = require("url");
 const querystring = require('querystring');
+const mongoLogDAO = require("../module/mongoLogDAO");
+const apiType = require("../module/apiTypeInfo");
 
 //get a posting by posting Index
 router.get("/", (req,res) => {
@@ -24,10 +26,14 @@ router.get("/", (req,res) => {
             resultFormat.posting = res.rows
         }
         res.send(resultFormat)
+        mongoLogDAO.sendLog("", apiType.board.read_posting, 
+        JSON.stringify(postingIndex), JSON.stringify(resultFormat));
     })
     .catch (err => {
-        resultFormat.errmsg = err
-        res.send(resultFormat)
+        resultFormat.errmsg = err;
+        res.send(resultFormat);
+        mongoLogDAO.sendLog("", apiType.board.read_posting, 
+        JSON.stringify(postingIndex), JSON.stringify(resultFormat));
     })
 });
 
@@ -42,15 +48,36 @@ router.post("/", (req,res) => {
         "success" : false,
         "errmsg" : ""
     };
+    //TODO: session 확인  
+    dao.selectWithId(DBUtil.loginTable, reqId)
+    .then(res_sel_l => {
+        if (res_sel_l.rows.length == 0) {
+            resultFormat.errmsg = "no login information having this Id"
+            res.send(resultFormat);
+            mongoLogDAO.sendLog("", apiType.board.create_posting, 
+            JSON.stringify(req.body), JSON.stringify(resultFormat));
+        } 
+    })
+    .catch(err => {
+        resultFormat.errmsg = err;
+        res.send(resultFormat);
+        mongoLogDAO.sendLog("", apiType.board.create_posting, 
+        JSON.stringify(req.body), JSON.stringify(resultFormat));
+    })
+
 
     dao.insertPosting(reqId, reqTitle, reqContent, reqBoardIndex)
     .then(res => {
         resultFormat.success = true;
         res.send(resultFormat);
+        mongoLogDAO.sendLog("", apiType.board.create_posting, 
+        JSON.stringify(req.body), JSON.stringify(resultFormat));
     })
     .catch(err => {
         resultFormat.errmsg = err;
         res.send(resultFormat);
+        mongoLogDAO.sendLog("", apiType.board.create_posting, 
+        JSON.stringify(req.body), JSON.stringify(resultFormat));
     });
 
 });
@@ -66,13 +93,28 @@ router.put("/", (req,res) => {
         "success" : false,
         "errmsg" : ""
     }
-    //인덱스 조회 시 포스팅이 존재하지 않을때 
+
+    dao.selectWithId(DBUtil.loginTable, reqId)
+    .then(res_sel_l => {
+        if (res_sel_l.rows.length == 0) {
+            resultFormat.errmsg = "no login information having this Id"
+            res.send(resultFormat);
+            mongoLogDAO.sendLog("", apiType.board.create_posting, 
+            JSON.stringify(req.body), JSON.stringify(resultFormat));
+        } 
+    })
+    .catch(err => {
+        resultFormat.errmsg = err;
+        res.send(resultFormat);
+    })
+
     dao.selectWithPostingIndex(DBUtil.postingTable, reqIndex)
     .then(res_sel=> {
-        //console.log(res.rows[0])
         if (res_sel.rows[0].id != reqId) {
             resultFormat.errmsg = "you are not a posting writer, wrong ID"
             res.send(resultFormat);
+            mongoLogDAO.sendLog("", apiType.board.update_posting, 
+            JSON.stringify(req.body), JSON.stringify(resultFormat));
         } else {
             dao.updatePostingWithPostingIndex(reqTitle, reqContent, reqIndex)
             .then(res_upd=>{
@@ -83,10 +125,14 @@ router.put("/", (req,res) => {
                     resultFormat.success = true;
                 }
                 res.send(resultFormat);
+                mongoLogDAO.sendLog("", apiType.board.update_posting, 
+                JSON.stringify(req.body), JSON.stringify(resultFormat));
             })
             .catch(e=> {
                 resultFormat.errmsg = e;
                 res.send(resultFormat);
+                mongoLogDAO.sendLog("", apiType.board.update_posting, 
+                JSON.stringify(req.body), JSON.stringify(resultFormat));
             })
         }
     })
@@ -103,16 +149,32 @@ router.delete("/", (req,res) => {
         "success" : false,
         "errmsg" : "",
     };
-    // 글 작성자가 맞는지 확인하는 과정 추가 
-
-    dao.deletePosting(reqIndex)
-    .then(res => {
-        resultFormat.success = true;
-        res.send(resultFormat);
+    dao.selectWithId(DBUtil.loginTable, reqId)
+    .then(res_sel_l => {
+        if (res_sel_l.rows.length == 0) {
+            resultFormat.errmsg = "no login information having this Id"
+            res.send(resultFormat);
+            mongoLogDAO.sendLog("", apiType.board.create_posting, 
+            JSON.stringify(req.body), JSON.stringify(resultFormat));
+        } 
     })
     .catch(err => {
         resultFormat.errmsg = err;
         res.send(resultFormat);
+    })
+    //TODO: 댓글 작성자와 삭제 요청자가 맞는지 확인
+    dao.deletePosting(reqIndex)
+    .then(res=> {
+        resultFormat.success = true;
+        res.send(resultFormat);
+        mongoLogDAO.sendLog("", apiType.board.delete_posting, 
+        JSON.stringify(req.body), JSON.stringify(resultFormat));
+    })
+    .catch(err => {
+        resultFormat.errmsg = err;
+        res.send(resultFormat);
+        mongoLogDAO.sendLog("", apiType.board.delete_posting, 
+        JSON.stringify(req.body), JSON.stringify(resultFormat));
     })
 });
 
@@ -133,12 +195,17 @@ router.get("/total", (req, res) => {
             resultFormat.posting_list = res.rows;
         }
         res.send(resultFormat);
+        mongoLogDAO.sendLog("", apiType.board.total_posting, 
+        "", JSON.stringify(resultFormat));
     })
     .catch(e=>{
         resultFormat.errmsg = e;
         res.send(resultFormat);
+        mongoLogDAO.sendLog("", apiType.board.total_posting, 
+        "", JSON.stringify(resultFormat));
     })
 });
+
 //get postings sorted by board index 
 router.get("/peer", (req,res) => {
     const boardIndex = req.query.index;
@@ -147,7 +214,7 @@ router.get("/peer", (req,res) => {
         "errmsg": "",
         "posting_list": []
     }
-    // 게시판 인덱스 존재하는지 확인? 
+    // TODO: 게시판 인덱스 존재하는지 확인, 단순히 보드 인덱스 정수에 알맞은 범위인지만 체크하면 되는거 아냐?
     dao.selectWithBoardIndex(DBUtil.postingTable, boardIndex)
     .then(res_selb => {
         if (res_selb.rows.length == 0) {
@@ -156,11 +223,15 @@ router.get("/peer", (req,res) => {
             resultFormat.success = true
             resultFormat.posting_list = res_selb.rows
         }
-        res.send(resultFormat)
+        res.send(resultFormat);
+        mongoLogDAO.sendLog("", apiType.board.read_board_postings, 
+        JSON.stringify(boardIndex), JSON.stringify(resultFormat));
     })
     .catch (err => {
         resultFormat.errmsg = err
         res.send(resultFormat)
+        mongoLogDAO.sendLog("", apiType.board.read_board_postings, 
+        JSON.stringify(boardIndex), JSON.stringify(resultFormat));
     })
 });
 
@@ -172,7 +243,7 @@ router.post("/search", (req,res) => {
         "errmsg": "",
         "posting_list": []
     }
-
+    //TODO : 이스케이프 코드나 %일때 예외처리 필요 
     dao.searchWithTitle(reqWord)
     .then(res_sel => {
         if (res_sel.rows.length == 0) {
@@ -181,14 +252,16 @@ router.post("/search", (req,res) => {
             resultFormat.success = true;
             resultFormat.posting_list = res_sel.rows;
         }
-        res.send(resultFormat)
+        res.send(resultFormat);
+        mongoLogDAO.sendLog("", apiType.board.search_title, 
+        JSON.stringify(reqWord), JSON.stringify(resultFormat));
     })
     .catch(e => {
         resultFormat.errmsg  = e;
-        res.send(resultFormat)
+        res.send(resultFormat);
+        mongoLogDAO.sendLog("", apiType.board.search_title, 
+        JSON.stringify(reqWord), JSON.stringify(resultFormat));
     })
-
-
 });
 
 module.exports = router;

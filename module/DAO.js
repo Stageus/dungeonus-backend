@@ -100,7 +100,7 @@ module.exports.selectWithPostingIndex = (tableType, postingIndex) => {
 module.exports.selectWithBoardIndex = (tableType, boardIndex) => {
     const text = 'SELECT * FROM ' + tableType + ' WHERE board_index=$1';
     const values = [boardIndex];
-
+ 
     return client.query(text, values);
 }
 
@@ -128,9 +128,10 @@ module.exports.updatePostingWithPostingIndex = (title, content, postingIndex) =>
 }
 
 module.exports.searchWithTitle = (word) => {
-    const text = "SELECT * FROM " + DBUtil.postingTable + " WHERE title LIKE '%" + word + "%';"
-
-    return client.query(text);
+    const text = "SELECT * FROM " + DBUtil.postingTable + " WHERE title LIKE $1"
+    const values = ['%' + word + '%']
+    
+    return client.query(text, values);
 }
 
 //comment table 
