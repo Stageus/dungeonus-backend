@@ -47,6 +47,6 @@ module.exports.deleteSessionWithUserIdRetNo = async (id) =>{
     let deleteSession;
     deleteSession = await sessionDAO.deleteSessionWithUserId(id);
 
-    console.log("accountModule.js delete session :");
+    console.log("sessionModule.js delete session :");
     console.log(deleteSession);
 }
