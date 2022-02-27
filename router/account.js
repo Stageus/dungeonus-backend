@@ -14,6 +14,7 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 const mongoLogDAO = require("../module/mongoLogDAO");
+const checkSession = require("../module/checkSessionModule");
 
 // session & cookie
 const sessionObj = session({
@@ -109,6 +110,12 @@ router.post("/logout", async (req,res)=>{
 });
 
 router.delete("/", async (req, res) =>{
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+
     const reqId = req.body.id;
     const resultFormat = {
         "success" : false,
@@ -210,6 +217,12 @@ router.delete("/", async (req, res) =>{
 });
 
 router.put("/", async (req,res)=>{
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+    
     const reqId = req.body.id;
     const reqName = req.body.name;
     const reqGeneration = req.body.generation;
@@ -270,6 +283,12 @@ router.put("/", async (req,res)=>{
 });
 
 router.post("/", async (req,res)=>{
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+
     const reqId = req.body.id;
     const reqName = req.body.name;
     const reqGeneration = req.body.generation;
@@ -409,6 +428,12 @@ router.post("/", async (req,res)=>{
 });
 
 router.get("/total", async (req, res) =>{
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+    
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
@@ -437,6 +462,12 @@ router.get("/total", async (req, res) =>{
 });
 
 router.post("/changepw", async (req,res)=>{
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+
     const reqId = req.body.id;
     const reqCurPw = req.body.cur_pw;
     const reqAftPw = req.body.aft_pw;
@@ -516,6 +547,12 @@ router.post("/changepw", async (req,res)=>{
 });
 
 router.get("/autologin", async (req, res)=>{
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+
     let userId;
     const resultFormat = {
         "success" : false,
@@ -591,6 +628,12 @@ router.get("/autologin", async (req, res)=>{
 });
 
 router.get("/refreshsession", async(req,res)=>{
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+
     let userId;
     const resultFormat = {
         "success" : false,
@@ -635,63 +678,6 @@ router.get("/refreshsession", async(req,res)=>{
         resultFormat.errmsg = "The session id is invalid";
         res.send(resultFormat);
         await mongoLogDAO.sendLog(userId, apiType.account.refresh_session,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-})
-
-router.get("/checksession", async (req,res)=>{
-    const resultFormat = {
-        "success" : false,
-        "errmsg" : "empty",
-        "validity" : false,
-    };
-
-    const sessionId = req.cookies.sessionId;
-    const foundSession = await accountModule.checkSessionWithSessionIdRetObj(sessionId);
-
-    if(Object.values(foundSession).length == 1){
-        // if session is valid.
-        const userInfo = JSON.parse(foundSession[0].session).user;
-        const res_loginSel = await dao.selectWithId(DBUtil.loginTable, userInfo.id);
-
-        if (res_loginSel.rows.length == 0) {
-            resultFormat.errmsg = "There is no corresponding Id";
-            res.send(resultFormat);
-            await mongoLogDAO.sendLog(userInfo.id, apiType.account.check_session,
-                JSON.stringify(req.body), JSON.stringify(resultFormat));
-            return;
-        }
-        else {
-            if (res_loginSel.rows[0].pw == userInfo.pw) {
-                resultFormat.success = true;
-                resultFormat.validity = true;
-                res.send(resultFormat);
-                await mongoLogDAO.sendLog(userInfo.id, apiType.account.check_session,
-                    JSON.stringify(req.body), JSON.stringify(resultFormat));
-                return;
-            }
-            else {
-                resultFormat.errmsg = "Wrong Password";
-                res.send(resultFormat);
-                await mongoLogDAO.sendLog(userInfo.id, apiType.account.check_session,
-                    JSON.stringify(req.body), JSON.stringify(resultFormat));
-                return;
-            }
-        }
-    }
-    else if (Object.values(foundSession).length > 1) {
-        resultFormat.errmsg = "There is more than 1 row with same session id in session store";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog("", apiType.account.check_session,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-    else {
-        resultFormat.success = true;
-        resultFormat.errmsg = "The session id is invalid";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog("", apiType.account.check_session,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
