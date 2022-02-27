@@ -1,2 +1,5 @@
 #account data files
 accountData/*.js
+
+#postgresql historyfile direcotry
+/dungeonus
