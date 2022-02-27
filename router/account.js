@@ -4,7 +4,7 @@ const app = express();
 const path = require("path");
 const dao = require("../module/DAO.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
-const accountModule = require("../module/accountModule");
+const sessionModule = require("../module/sessionModule");
 const apiType = require("../module/apiTypeInfo");
 
 const session = require('express-session');
@@ -71,11 +71,11 @@ router.post("/login", async (req,res) =>{
     resultFormat.success = true;
 
     // check session which corresponding to request id is exist
-    const foundSessionLen = await accountModule.checkSessionWithUserIdRetLen(reqId);
+    const foundSessionLen = await sessionModule.checkSessionWithUserIdRetLen(reqId);
 
     // if user's another session is already exist
     if (foundSessionLen != 0)
-        await accountModule.deleteSessionWithUserIdRetNo(reqId);
+        await sessionModule.deleteSessionWithUserIdRetNo(reqId);
 
     // Request session & cookie
     req.session.user = {
@@ -101,7 +101,7 @@ router.post("/logout", async (req,res)=>{
     // Delete cookies and sessions after check those.
     req.session.destroy();
     res.clearCookie(cookieKeyName);
-    await accountModule.deleteSessionWithUserIdRetNo(reqId);
+    await sessionModule.deleteSessionWithUserIdRetNo(reqId);
 
     resultFormat.success = true;
     res.send(resultFormat);
@@ -563,7 +563,7 @@ router.get("/autologin", async (req, res)=>{
     // TODO: using cookie's session id, 
     // find user info in current login database.
     const sessionId = req.cookies.sessionId;
-    const foundSession = await accountModule.checkSessionWithSessionIdRetObj(sessionId);
+    const foundSession = await sessionModule.checkSessionWithSessionIdRetObj(sessionId);
 
     // if session exist get user id
     if(Object.values(foundSession).length > 0){
@@ -586,7 +586,7 @@ router.get("/autologin", async (req, res)=>{
         // check user pw
         if (res_loginSel.rows[0].pw == userInfo.pw) {
             // delete past session
-            await accountModule.deleteSessionWithUserIdRetNo(userInfo.id);
+            await sessionModule.deleteSessionWithUserIdRetNo(userInfo.id);
 
             // Request session & cookie
             req.session.user = {
@@ -641,7 +641,7 @@ router.get("/refreshsession", async(req,res)=>{
     };
 
     const sessionId = req.cookies.sessionId;
-    const foundSession = await accountModule.checkSessionWithSessionIdRetObj(sessionId);
+    const foundSession = await sessionModule.checkSessionWithSessionIdRetObj(sessionId);
 
     // if session exist get user id
     if(Object.values(foundSession).length > 0){
