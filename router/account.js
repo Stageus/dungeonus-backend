@@ -110,18 +110,18 @@ router.post("/logout", async (req,res)=>{
 });
 
 router.delete("/", async (req, res) =>{
-    if((await checkSession(req.cookies.sessionId)) == false){
-        resultFormat.errmsg = "Session is not valid";
-        res.send(resultFormat);
-        return;
-    }
-
     const reqId = req.body.id;
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
     };
 
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+    
     let res_loginSel;
     try{
         res_loginSel = await dao.selectWithId(DBUtil.loginTable, reqId);
@@ -217,12 +217,6 @@ router.delete("/", async (req, res) =>{
 });
 
 router.put("/", async (req,res)=>{
-    if((await checkSession(req.cookies.sessionId)) == false){
-        resultFormat.errmsg = "Session is not valid";
-        res.send(resultFormat);
-        return;
-    }
-    
     const reqId = req.body.id;
     const reqName = req.body.name;
     const reqGeneration = req.body.generation;
@@ -231,7 +225,13 @@ router.put("/", async (req,res)=>{
         "success" : false,
         "errmsg" : "empty",
     };
-
+    
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+    
     let res_profSel;
     try{
         res_profSel = await dao.selectWithId(DBUtil.profileTable, reqId);
@@ -283,12 +283,6 @@ router.put("/", async (req,res)=>{
 });
 
 router.post("/", async (req,res)=>{
-    if((await checkSession(req.cookies.sessionId)) == false){
-        resultFormat.errmsg = "Session is not valid";
-        res.send(resultFormat);
-        return;
-    }
-
     const reqId = req.body.id;
     const reqName = req.body.name;
     const reqGeneration = req.body.generation;
@@ -428,18 +422,18 @@ router.post("/", async (req,res)=>{
 });
 
 router.get("/total", async (req, res) =>{
+    const resultFormat = {
+        "success" : false,
+        "errmsg" : "empty",
+        "id_list" : [],
+    };
+    
     if((await checkSession(req.cookies.sessionId)) == false){
         resultFormat.errmsg = "Session is not valid";
         res.send(resultFormat);
         return;
     }
     
-    const resultFormat = {
-        "success" : false,
-        "errmsg" : "empty",
-        "id_list" : [],
-    };
-
     let res_profSel;
     try{
         res_profSel = await dao.selectAll(DBUtil.profileTable);
@@ -462,12 +456,6 @@ router.get("/total", async (req, res) =>{
 });
 
 router.post("/changepw", async (req,res)=>{
-    if((await checkSession(req.cookies.sessionId)) == false){
-        resultFormat.errmsg = "Session is not valid";
-        res.send(resultFormat);
-        return;
-    }
-
     const reqId = req.body.id;
     const reqCurPw = req.body.cur_pw;
     const reqAftPw = req.body.aft_pw;
@@ -475,7 +463,13 @@ router.post("/changepw", async (req,res)=>{
         "success" : false,
         "errmsg" : "empty",
     };
-
+    
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+    
     // check id is exist
     let res_loginSel;
     try{
@@ -547,18 +541,18 @@ router.post("/changepw", async (req,res)=>{
 });
 
 router.get("/autologin", async (req, res)=>{
-    if((await checkSession(req.cookies.sessionId)) == false){
-        resultFormat.errmsg = "Session is not valid";
-        res.send(resultFormat);
-        return;
-    }
-
     let userId;
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
         "session_id" : "empty",
     };
+    
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
     
     // TODO: using cookie's session id, 
     // find user info in current login database.
@@ -628,18 +622,18 @@ router.get("/autologin", async (req, res)=>{
 });
 
 router.get("/refreshsession", async(req,res)=>{
-    if((await checkSession(req.cookies.sessionId)) == false){
-        resultFormat.errmsg = "Session is not valid";
-        res.send(resultFormat);
-        return;
-    }
-
     let userId;
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
     };
-
+    
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+    
     const sessionId = req.cookies.sessionId;
     const foundSession = await sessionModule.checkSessionWithSessionIdRetObj(sessionId);
 
