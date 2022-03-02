@@ -3,6 +3,7 @@ const router = express.Router();
 const app = express();
 const path = require("path");
 const dao = require("../module/DAO.js");
+const postgredao = require("../module/postgreDAO");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
 const sessionModule = require("../module/sessionModule");
 const apiType = require("../module/apiTypeInfo");
@@ -124,7 +125,7 @@ router.delete("/", async (req, res) =>{
     
     let res_delAcnt;
     try{
-        res_delAcnt = await dao.deleteLoginProfileWithId(reqId);
+        res_delAcnt = await postgredao.deleteLoginProfileWithId(reqId);
     }
     catch(e){
         console.log("Exception in delete router dao.deleteLoginProfileWithId loginTable :");
@@ -228,7 +229,7 @@ router.post("/", async (req,res)=>{
 
     let res_isrtAcnt;
     try{
-        res_isrtAcnt = await dao.insertLoginProfile(reqId, reqName, reqGeneration, reqPw);
+        res_isrtAcnt = await postgredao.insertLoginProfile(reqId, reqName, reqGeneration, reqPw);
     }
     catch(e){
         console.log("Exception in post router dao.insertLoginProfile :");
