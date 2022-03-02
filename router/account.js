@@ -122,87 +122,21 @@ router.delete("/", async (req, res) =>{
         return;
     }
     
-    let res_loginSel;
+    let res_delAcnt;
     try{
-        res_loginSel = await dao.selectWithId(DBUtil.loginTable, reqId);
+        res_delAcnt = await dao.deleteLoginProfileWithId(reqId);
     }
     catch(e){
-        console.log("Exception in delete router dao.selectWithId loginTable :");
+        console.log("Exception in delete router dao.deleteLoginProfileWithId loginTable :");
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
         await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-
-    if (res_loginSel.rows.length == 0) {
-        resultFormat.errmsg = "There is no corresponding Id";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-
-    let res_profSel;
-    try{
-        res_profSel = await dao.selectWithId(DBUtil.profileTable, reqId);
-    }
-    catch(e){
-        console.log("Exception in delete router dao.selectWithId profileTable :");
-        console.log(e);
-        resultFormat.errmsg = e;
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-
-    if (res_profSel.rows.length == 0) {
-        resultFormat.errmsg = "There is no corresponding Id";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
     
-    let res_loginDel;
-    try{
-        res_loginDel = await dao.deleteWithId(DBUtil.loginTable, reqId);
-    }
-    catch(e){
-        console.log("Exception in delete router dao.deleteWithId loginTable :");
-        console.log(e);
-        resultFormat.errmsg = e;
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-
-    if (res_loginDel.rows.rowCount == 0) {
-        resultFormat.errmsg = "There is occured trouble in delete";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-            
-    let res_profDel;
-    try{
-        res_profDel = await dao.deleteWithId(DBUtil.profileTable, reqId);
-    }
-    catch(e){
-        console.log("Exception in delete router dao.deleteWithId profileTable :");
-        console.log(e);
-        resultFormat.errmsg = e;
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-        
-    if (res_profDel.rows.rowCount == 0) {
+    if (res_delAcnt.rowCount == 0) {
         resultFormat.errmsg = "There is occured trouble in delete";
         res.send(resultFormat);
         await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
@@ -292,121 +226,21 @@ router.post("/", async (req,res)=>{
         "errmsg" : "empty",
     };
 
-    // check and insert profile table
-    let res_profSel;
+    let res_isrtAcnt;
     try{
-        res_profSel = await dao.selectWithId(DBUtil.profileTable, reqId);
+        res_isrtAcnt = await dao.insertLoginProfile(reqId, reqName, reqGeneration, reqPw);
     }
     catch(e){
-        console.log("Exception in post router dao.selectWithId profileTable : ");
+        console.log("Exception in post router dao.insertLoginProfile :");
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-    // if profile row is already exist
-    if (res_profSel.rows.length != 0) {
-        resultFormat.errmsg = "Id is already exist in "
-            + DBUtil.profileTable + " table";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-    // insert profile table
-    let res_profIns;
-    try{
-        res_profIns =  await dao.insertProfile(reqId, reqName, reqGeneration);
-    }
-    catch(e){
-        console.log("Exception in post router dao.selectWithId profileTable : ");
-        console.log(e);
-        resultFormat.errmsg = e;
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
+        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
 
-    if (res_profIns.rowCount == 0) {
-        resultFormat.errmsg = "There is occured trouble in insert";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-
-    /*
-    if insert profile table successfully
-    next process is check and insert to login table
-    */
-    let res_loginSel;
-    try{
-        res_loginSel = await dao.selectWithId(DBUtil.loginTable, reqId);
-    }
-    catch(e){
-        console.log("Exception in post router dao.selectWithId loginTable : ");
-        console.log(e);
-        resultFormat.errmsg = e;
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-    // if login row is already exist
-    if (res_loginSel.rows.length != 0) {
-        resultFormat.errmsg = "Id is already exist in "
-            + DBUtil.loginTable + " table";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-    // insert login table
-    let res_loginIns;
-    try {
-        res_loginIns = await dao.insertLogin(reqId, reqPw, reqName);
-    }
-    catch (e) {
-        console.log("Exception in post router dao.insertLogin : ");
-        console.log(e);
-        /* 
-        if insert profile table successfully
-        but fail to login table 
-        delete inserted profile table row
-        */
-        let res_profDel;
-        try {
-            res_profDel = await dao.deleteWithId(DBUtil.profileTable, reqId);
-        }
-        catch (e_inCatch) {
-            console.log("Exception in post router dao.deleteWithId profileTable : ");
-            console.log(e_inCatch);
-            resultFormat.errmsg = e_inCatch;
-            res.send(resultFormat);
-            await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-            return;
-        }
-
-        if (res_profDel.rows.length == 0) {
-            resultFormat.errmsg = "There is trouble in delete";
-            res.send(resultFormat);
-            await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-            return;
-        }
-
-        resultFormat.errmsg = "Completely delete inserted profile table";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.create_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-    
-    if (res_loginIns.rowCount == 0) {
+    if (res_isrtAcnt.rowCount == 0) {
         resultFormat.errmsg = "There is occured trouble in insert";
         res.send(resultFormat);
         await mongoLogDAO.sendLog(reqId, apiType.account.create_account, 
