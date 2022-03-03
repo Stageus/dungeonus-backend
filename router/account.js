@@ -4,7 +4,6 @@ const app = express();
 const path = require("path");
 const dao = require("../module/DAO.js");
 const postgredao = require("../module/postgreDAO");
-const {DBInfo, DBUtil} = require("../module/databaseModule");
 const sessionModule = require("../module/sessionModule");
 const apiType = require("../module/apiTypeInfo");
 const session = require('express-session');
@@ -41,7 +40,7 @@ router.post("/login", async (req,res) =>{
 
     let res_loginSel;
     try{
-        res_loginSel = await dao.selectWithId(DBUtil.loginTable, reqId);
+        res_loginSel = await postgredao.selectLoginWithId(reqId);
     }
     catch(e){
         console.log("Exception in login router dao.selectWithId : ");
@@ -313,7 +312,7 @@ router.get("/autologin", async (req, res)=>{
     if(Object.values(foundSession).length == 1){
         // if session is valid.
         const userInfo = JSON.parse(foundSession[0].session).user;
-        const res_loginSel = await dao.selectWithId(DBUtil.loginTable, userInfo.id);
+        const res_loginSel = await postgredao.selectLoginWithId(userInfo.id);
 
         if (res_loginSel.rows.length == 0) {
             resultFormat.errmsg = "There is no corresponding Id";

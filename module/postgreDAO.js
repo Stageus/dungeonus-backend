@@ -49,6 +49,13 @@ module.exports.updateLogin = (id, curpw, aftpw) =>{
     return client.query(text, values);
 }
 
+module.exports.selectLoginWithId = (id)=>{
+    const text = 'select * from ' + DBUtil.loginTable + ' where id = $1';
+    const values = [id];
+
+    return client.query(text, values);
+}
+
 // profile.js
 module.exports.updateProfile = (id, profile)=>{
     const text = 'with update_prof as (' +
