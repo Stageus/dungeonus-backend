@@ -1,10 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const dao = require("../module/DAO.js");
-const postgredao = require("../module/postgreDAO");
+const app = express();
+const postgredao = require("../module/postgreDAO/profileDAO");
 const mongoLogDAO = require("../module/mongoLogDAO");
 const apiType = require("../module/apiTypeInfo");
-const {DBInfo, DBUtil} = require("../module/databaseModule");
+const checkSession = require("../module/checkSessionModule");
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 
 router.post("/", async (req,res)=>{
     const reqId = req.body.id;
@@ -14,10 +16,16 @@ router.post("/", async (req,res)=>{
         "profile_list" : {},
     };
     
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+
     // bring profile data
     let res_profSel;
     try{
-        res_profSel = await dao.selectProfileWithId(reqId);
+        res_profSel = await postgredao.selectProfileWithId(reqId);
     }
     catch(e){
         console.log("Exception in profile router dao.selectProfileWithId : ");
@@ -56,7 +64,7 @@ router.put("/", async (req,res)=>{
         "success" : false,
         "errmsg" : "empty",
     };
-    
+    console.log(req.cookies);
     if((await checkSession(req.cookies.sessionId)) == false){
         resultFormat.errmsg = "Session is not valid";
         res.send(resultFormat);
@@ -91,4 +99,6 @@ router.put("/", async (req,res)=>{
             JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
-module.exports = router;
+app.use('/', router);
+
+module.exports = app;
