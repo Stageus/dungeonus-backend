@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const dao = require("../module/DAO.js");
+const postgredao = require("../module/postgreDAO");
 const mongoLogDAO = require("../module/mongoLogDAO");
 const apiType = require("../module/apiTypeInfo");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
@@ -55,49 +56,39 @@ router.put("/", async (req,res)=>{
         "success" : false,
         "errmsg" : "empty",
     };
-
-    // check id is exist
-    let res_profSel;
-    try{
-        res_profSel = await dao.selectWithId(DBUtil.profileTable, reqId);
-    }
-    catch(e){
-        console.log("Exception in put router dao.selectWithId profileTable :");
-        console.log(e);
-        resultFormat.errmsg = e;
+    
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
     
-    if (res_profSel.rows.length == 0) {
-        resultFormat.errmsg = "There is no corresponding Id";
+    let res_updateAcnt;
+    try{
+        res_updateAcnt = await postgredao.updateProfile(reqId, reqProfile);
+    }
+    catch(e){
+        console.log("Exception in put router postgredao.updateProfile :");
+        console.log(e);
+        resultFormat.errmsg = e;
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account,
+        await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
 
-    // update profile
-    let res_profUpd;
-    try{
-        res_profUpd = await dao.updateProfileWithId(reqId, reqProfile)
-    }
-    catch(e){
-        console.log("Exception in login router dao.updateProfileWithId : ");
-        console.log(e);
-        resultFormat.errmsg = e;
+    if (res_updateAcnt.rowCount == 0) {
+        resultFormat.errmsg = "There is occured trouble in update";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.profile.show,
+        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
 
     resultFormat.success = true;
     res.send(resultFormat);
-    await mongoLogDAO.sendLog(reqId, apiType.profile.show,
-        JSON.stringify(req.body), JSON.stringify(resultFormat));
+    await mongoLogDAO.sendLog(reqId, apiType.account.modify_account,
+            JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
 module.exports = router;

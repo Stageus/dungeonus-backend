@@ -128,7 +128,7 @@ router.delete("/", async (req, res) =>{
         res_delAcnt = await postgredao.deleteLoginProfileWithId(reqId);
     }
     catch(e){
-        console.log("Exception in delete router dao.deleteLoginProfileWithId loginTable :");
+        console.log("Exception in delete router postgredao.deleteLoginProfileWithId loginTable :");
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
@@ -151,72 +151,6 @@ router.delete("/", async (req, res) =>{
             JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
-router.put("/", async (req,res)=>{
-    const reqId = req.body.id;
-    const reqName = req.body.name;
-    const reqGeneration = req.body.generation;
-    const reqCourse = req.body.course;
-    const resultFormat = {
-        "success" : false,
-        "errmsg" : "empty",
-    };
-    
-    if((await checkSession(req.cookies.sessionId)) == false){
-        resultFormat.errmsg = "Session is not valid";
-        res.send(resultFormat);
-        return;
-    }
-    
-    let res_profSel;
-    try{
-        res_profSel = await dao.selectWithId(DBUtil.profileTable, reqId);
-    }
-    catch(e){
-        console.log("Exception in put router dao.selectWithId profileTable :");
-        console.log(e);
-        resultFormat.errmsg = e;
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-    
-    if (res_profSel.rows.length == 0) {
-        resultFormat.errmsg = "There is no corresponding Id";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-
-    let res_Update;
-    try{
-        res_Update = await dao.updateProfileFromAdminWithId(reqName, reqGeneration, reqCourse, reqId);
-    }
-    catch(e){
-        console.log("Exception in put router dao.updateProfileFromAdminWithId :");
-        console.log(e);
-        resultFormat.errmsg = e;
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-        
-    if (res_Update.rowCount == 0) {
-        resultFormat.errmsg = "There is occured trouble in update";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.modify_account, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-
-    resultFormat.success = true;
-    res.send(resultFormat);
-    await mongoLogDAO.sendLog(reqId, apiType.account.modify_account,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-});
-
 router.post("/", async (req,res)=>{
     const reqId = req.body.id;
     const reqName = req.body.name;
@@ -232,7 +166,7 @@ router.post("/", async (req,res)=>{
         res_isrtAcnt = await postgredao.insertLoginProfile(reqId, reqName, reqGeneration, reqPw);
     }
     catch(e){
-        console.log("Exception in post router dao.insertLoginProfile :");
+        console.log("Exception in post router postgredao.insertLoginProfile :");
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
@@ -260,7 +194,7 @@ router.get("/total", async (req, res) =>{
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
-        "id_list" : [],
+        "profile_list" : [],
     };
     
     if((await checkSession(req.cookies.sessionId)) == false){
@@ -271,10 +205,10 @@ router.get("/total", async (req, res) =>{
     
     let res_profSel;
     try{
-        res_profSel = await dao.selectAll(DBUtil.profileTable);
+        res_profSel = await postgredao.selectAllAcnt();
     }
     catch(e){
-        console.log("Exception in total router dao.selectAll profileTable : ");
+        console.log("Exception in total router postgredao.selectAllAcnt : ");
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
@@ -283,7 +217,7 @@ router.get("/total", async (req, res) =>{
         return;
     }
 
-    resultFormat.id_list = res_profSel.rows;
+    resultFormat.profile_list = res_profSel.rows;
     resultFormat.success = true;
     res.send(resultFormat);
     await mongoLogDAO.sendLog("", apiType.account.total_accont,
@@ -305,38 +239,6 @@ router.post("/changepw", async (req,res)=>{
         return;
     }
     
-    // check id is exist
-    let res_loginSel;
-    try{
-        res_loginSel = await dao.selectWithId(DBUtil.loginTable, reqId);
-    }
-    catch(e){
-        console.log("Exception in changepw router dao.selectWithId loginTable : ");
-        console.log(e);
-        resultFormat.errmsg = e;
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-    
-    if (res_loginSel.rows.length == 0) {
-        resultFormat.errmsg = "There is no corresponding Id";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-    
-    // check cur_pw is correct pw
-    if (res_loginSel.rows[0].pw != reqCurPw) {
-        resultFormat.errmsg = "Wrong password";
-        res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw,
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-        return;
-    }
-    
     // check aft_pw's format is valid
     if(reqAftPw.replace(/ /gi, "") == '' || reqAftPw.replace(/ /gi, "")!= reqAftPw){
         resultFormat.errmsg = "After password is invalid format";
@@ -346,13 +248,22 @@ router.post("/changepw", async (req,res)=>{
         return;
     }
 
-    // update pw to aft_pw
-    let res_loginUdt;
+    // check aft_pw is same with cur_pw
+    if(reqAftPw == reqCurPw){
+        resultFormat.errmsg = "After password isn't allowed same with current password";
+        res.send(resultFormat);
+        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, 
+            JSON.stringify(req.body), JSON.stringify(resultFormat));
+        return;
+    }
+
+    // check id is exist
+    let res_updateAcnt;
     try{
-        res_loginUdt = await dao.updateLogin_PwWithId(reqAftPw, reqId);
+        res_updateAcnt = await postgredao.updateLogin(reqId, reqCurPw, reqAftPw);
     }
     catch(e){
-        console.log("Exception in changepw router dao.updateLogin_PwWithId : ");
+        console.log("Exception in changepw router postgredao.updateLogin : ");
         console.log(e);
         resultFormat.errmsg = e;
         res.send(resultFormat);
@@ -361,10 +272,10 @@ router.post("/changepw", async (req,res)=>{
         return;
     }
     
-    if (res_loginUdt.rowCount == 0) {
-        resultFormat.errmsg = "There is trouble in update";
+    if (res_updateAcnt.rowCount.length == 0) {
+        resultFormat.errmsg = "There is no corresponding Account";
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw,
+        await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
         return;
     }
@@ -376,7 +287,6 @@ router.post("/changepw", async (req,res)=>{
 });
 
 router.get("/autologin", async (req, res)=>{
-    let userId;
     const resultFormat = {
         "success" : false,
         "errmsg" : "empty",
@@ -393,7 +303,8 @@ router.get("/autologin", async (req, res)=>{
     // find user info in current login database.
     const sessionId = req.cookies.sessionId;
     const foundSession = await sessionModule.checkSessionWithSessionIdRetObj(sessionId);
-
+    
+    let userId;
     // if session exist get user id
     if(Object.values(foundSession).length > 0){
         userId = JSON.parse(foundSession[0].session).user.id;

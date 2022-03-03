@@ -21,10 +21,8 @@
     <input type="button" value="logout" onclick="logout()">
     <input type="button" value="refresh session" onclick="refreshSession()">
     <input type="button" value="auto login" onclick="autoLogin()">
-    <input type="button" value="check session" onclick="checkSession()">
     <br>
     <input type="button" value="delete" onclick="del()">
-    <input type="button" value="modify account" onclick="modifyAccount()">
     <input type="button" value="create account" onclick="createAccount()">
     <input type="button" value="total profile" onclick="totalProfile()">
     <input type="button" value="change password" onclick="changePw()">
@@ -89,25 +87,6 @@
             });
     };
 
-    const modifyAccount = () =>{
-        fetch("/account/", {
-            "method": "PUT",
-            "headers": {
-                    "Content-Type": "application/json"
-                },
-                "body": JSON.stringify({
-                    "id": inputId.value,
-                    "name": inputName.value,
-                    "generation": inputGen.value,
-                    "course": {},
-                })
-            })
-            .then(response => response.json())
-            .then(result => {
-                console.log(result);
-            });
-    }
-
     const createAccount = ()=>{
         fetch("/account/", {
             "method": "POST",
@@ -168,15 +147,6 @@
 
     const autoLogin = () => {
         fetch("/account/autologin", {
-            "method": "GET"})
-            .then(response => response.json())
-            .then(result => {
-                console.log(result);
-            });
-    }
-
-    const checkSession = () => {
-        fetch("/account/checksession", {
             "method": "GET"})
             .then(response => response.json())
             .then(result => {
