@@ -92,6 +92,7 @@
                 "Content-Type": "application/json"
             },
             "body": JSON.stringify({
+                "id": "ji", //api 요청한 사람의 아이디
                 "postingIndex": postingIndex.value
             })
         })
@@ -215,6 +216,7 @@
                 },
                 "body": JSON.stringify({
                     "id": userIdforC.value, //api 요청한 사람의 아이디 
+                    "postingIndex": postingIndexforC.value,
                     "commentIndex": commentIndexforC.value,
                     "newContent": newContentforC.value
                 })
@@ -235,6 +237,8 @@
                 "Content-Type": "application/json"
             },
             "body": JSON.stringify({
+                "id": userIdforC.value,
+                "postingIndex": postingIndexforC.value,
                 "commentIndex": commentIndexforC.value
             })
         })

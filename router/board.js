@@ -1,89 +1,92 @@
 const express = require("express");
 const router = express.Router(); 
+const app = express();
 const path = require("path");
 const dao = require("../module/DAO.js");
 const {DBInfo, DBUtil} = require("../module/databaseModule");
-const url = require("url");
-const querystring = require('querystring');
 const mongoLogDAO = require("../module/mongoLogDAO");
 const apiType = require("../module/apiTypeInfo");
+const checkSession = require("../module/checkSessionModule");
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 
 //get a posting by posting Index
-router.get("/", (req,res) => {
+router.get("/", async (req,res) => {
     const postingIndex = req.query.index;
+    const reqUserId = ""; //  who requested this API
     const resultFormat = {
         "success": false,
         "errmsg": "",
         "posting": {}
     }
 
-    dao.selectWithPostingIndex(DBUtil.postingTable, postingIndex)
-    .then(res => {
-        if (res.rows.length == 0) {
+    try {
+        const res_sel_p = await dao.selectWithPostingIndex(DBUtil.postingTable, postingIndex)
+        if (res_sel_p.rows.length == 0) {     
             resultFormat.errmsg = "there is no posting having this posting index"
         } else {
             resultFormat.success = true
-            resultFormat.posting = res.rows
+            resultFormat.posting = res_sel_p.rows
         }
-        res.send(resultFormat)
-        mongoLogDAO.sendLog("", apiType.board.read_posting, 
-        JSON.stringify(postingIndex), JSON.stringify(resultFormat));
-    })
-    .catch (err => {
-        resultFormat.errmsg = err;
-        res.send(resultFormat);
-        mongoLogDAO.sendLog("", apiType.board.read_posting, 
-        JSON.stringify(postingIndex), JSON.stringify(resultFormat));
-    })
+            res.send(resultFormat)
+            await mongoLogDAO.sendLog("reqUserId", apiType.board.read_posting, 
+            JSON.stringify(postingIndex), JSON.stringify(resultFormat));
+    } catch (e) {
+        console.log("error point : get router in board API")
+        console.log(e)
+    }
 });
 
 //write a posting 
-router.post("/", (req,res) => {
+router.post("/", async(req,res) => {
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+
+    const reqUserId = ""; //  who requested this API
     const reqId = req.body.id 
     const reqTitle = req.body.title 
     const reqContent = req.body.content 
-    const reqBoardIndex = parseInt(req.body.boardIndex)
+    const reqBoardIndex = req.body.boardIndex
 
     const resultFormat = {
         "success" : false,
         "errmsg" : ""
     };
-    //TODO: session 확인  
-    dao.selectWithId(DBUtil.loginTable, reqId)
-    .then(res_sel_l => {
+
+    try {
+        //TODO: input 적합한지 검사 
+        const res_sel_l = await dao.selectWithId(DBUtil.loginTable, reqId)
         if (res_sel_l.rows.length == 0) {
             resultFormat.errmsg = "no login information having this Id"
             res.send(resultFormat);
-            mongoLogDAO.sendLog("", apiType.board.create_posting, 
+            await mongoLogDAO.sendLog("", apiType.board.create_posting, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
-        } 
-    })
-    .catch(err => {
-        resultFormat.errmsg = err;
-        res.send(resultFormat);
-        mongoLogDAO.sendLog("", apiType.board.create_posting, 
-        JSON.stringify(req.body), JSON.stringify(resultFormat));
-    })
-
-
-    dao.insertPosting(reqId, reqTitle, reqContent, reqBoardIndex)
-    .then(res => {
+            return
+        }
+        const res_ins_p = await dao.insertPosting(reqId, reqTitle, reqContent, reqBoardIndex)
         resultFormat.success = true;
         res.send(resultFormat);
-        mongoLogDAO.sendLog("", apiType.board.create_posting, 
+        await mongoLogDAO.sendLog("", apiType.board.create_posting, 
         JSON.stringify(req.body), JSON.stringify(resultFormat));
-    })
-    .catch(err => {
-        resultFormat.errmsg = err;
-        res.send(resultFormat);
-        mongoLogDAO.sendLog("", apiType.board.create_posting, 
-        JSON.stringify(req.body), JSON.stringify(resultFormat));
-    });
-
+        return
+    } catch (e) {
+        console.log("error point : post router in board API")
+        console.log(e)
+    }
 });
 
 //modify a posting 
-router.put("/", (req,res) => { 
+router.put("/", async(req,res) => { 
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+
+    const reqUserId = ""; //  who requested this API
     const reqId = req.body.id;
     const reqTitle = req.body.title;
     const reqContent = req.body.content;
@@ -93,121 +96,110 @@ router.put("/", (req,res) => {
         "success" : false,
         "errmsg" : ""
     }
-
-    dao.selectWithId(DBUtil.loginTable, reqId)
-    .then(res_sel_l => {
+    try {
+        const res_sel_l = await dao.selectWithId(DBUtil.loginTable, reqId)
         if (res_sel_l.rows.length == 0) {
             resultFormat.errmsg = "no login information having this Id"
             res.send(resultFormat);
-            mongoLogDAO.sendLog("", apiType.board.create_posting, 
+            await mongoLogDAO.sendLog("", apiType.board.update_posting, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
-        } 
-    })
-    .catch(err => {
-        resultFormat.errmsg = err;
-        res.send(resultFormat);
-    })
-
-    dao.selectWithPostingIndex(DBUtil.postingTable, reqIndex)
-    .then(res_sel=> {
-        if (res_sel.rows[0].id != reqId) {
+            return
+        }
+        const res_sel_p = await dao.selectWithPostingIndex(DBUtil.postingTable, reqIndex)
+        if (res_sel_p.rows[0].id != reqId) {
             resultFormat.errmsg = "you are not a posting writer, wrong ID"
             res.send(resultFormat);
-            mongoLogDAO.sendLog("", apiType.board.update_posting, 
+            await mongoLogDAO.sendLog("", apiType.board.update_posting, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
-        } else {
-            dao.updatePostingWithPostingIndex(reqTitle, reqContent, reqIndex)
-            .then(res_upd=>{
-                if(res_upd.rowCount == 0){
-                    resultFormat.errmsg = "problems occured while updating";
-                }
-                else{
-                    resultFormat.success = true;
-                }
-                res.send(resultFormat);
-                mongoLogDAO.sendLog("", apiType.board.update_posting, 
-                JSON.stringify(req.body), JSON.stringify(resultFormat));
-            })
-            .catch(e=> {
-                resultFormat.errmsg = e;
-                res.send(resultFormat);
-                mongoLogDAO.sendLog("", apiType.board.update_posting, 
-                JSON.stringify(req.body), JSON.stringify(resultFormat));
-            })
+            return
         }
-    })
-    .catch (err => {
-        resultFormat.errmsg = err
-        res_sel.send(resultFormat)
-    })
+
+        const res_upd = await dao.updatePostingWithPostingIndex(reqTitle, reqContent, reqIndex)
+        if (res_upd.rowCount == 0) {
+            resultFormat.errmsg = "problem occured while updating query"
+        } else {
+            resultFormat.success = true;
+        }
+        res.send(resultFormat);
+        await mongoLogDAO.sendLog("reqUserId", apiType.board.update_posting, 
+        JSON.stringify(req.body), JSON.stringify(resultFormat));
+        return
+    } catch (e) {
+        console.log("error point : put router in board API")
+        console.log(e)
+    }
 });
 
 //delete a posting
-router.delete("/", (req,res) => {
+router.delete("/", async(req,res) => {
+    if((await checkSession(req.cookies.sessionId)) == false){
+        resultFormat.errmsg = "Session is not valid";
+        res.send(resultFormat);
+        return;
+    }
+    const reqUserId = ""; //  who requested this API
+    const reqId = req.body.id;
     const reqIndex = req.body.postingIndex;
     const resultFormat = {
         "success" : false,
         "errmsg" : "",
     };
-    dao.selectWithId(DBUtil.loginTable, reqId)
-    .then(res_sel_l => {
+
+    try {
+        const res_sel_l = await dao.selectWithId(DBUtil.loginTable, reqId)
         if (res_sel_l.rows.length == 0) {
             resultFormat.errmsg = "no login information having this Id"
             res.send(resultFormat);
-            mongoLogDAO.sendLog("", apiType.board.create_posting, 
+            await mongoLogDAO.sendLog("", apiType.board.delete_posting, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));
+            return
         } 
-    })
-    .catch(err => {
-        resultFormat.errmsg = err;
-        res.send(resultFormat);
-    })
-    //TODO: 댓글 작성자와 삭제 요청자가 맞는지 확인
-    dao.deletePosting(reqIndex)
-    .then(res=> {
+        const res_sel_p = await dao.selectWithPostingIndex(DBUtil.postingTable, reqIndex)
+        if (res_sel_p.rows[0].id != reqId) {
+            resultFormat.errmsg = "you are not a posting writer, wrong ID"
+            res.send(resultFormat);
+            await mongoLogDAO.sendLog("", apiType.board.delete_posting, 
+            JSON.stringify(req.body), JSON.stringify(resultFormat));
+            return
+        }
+        const res_del = await dao.deletePosting(reqIndex)
         resultFormat.success = true;
         res.send(resultFormat);
-        mongoLogDAO.sendLog("", apiType.board.delete_posting, 
+        await mongoLogDAO.sendLog("", apiType.board.delete_posting, 
         JSON.stringify(req.body), JSON.stringify(resultFormat));
-    })
-    .catch(err => {
-        resultFormat.errmsg = err;
-        res.send(resultFormat);
-        mongoLogDAO.sendLog("", apiType.board.delete_posting, 
-        JSON.stringify(req.body), JSON.stringify(resultFormat));
-    })
+    } catch (e) {
+        console.log("error point : delete router in board API")
+        console.log(e)
+    }
 });
 
 //get all postings
-router.get("/total", (req, res) => {
+router.get("/total", async(req, res) => {
     const resultFormat = {
         "success" : false,
-        "errmsg" : "empty",
+        "errmsg" : "",
         "posting_list" : [],
     };
-
-    dao.selectAllPostings(DBUtil.postingTable)
-    .then( res => {
-        if(res.rows.length == 0) {
+    try {
+        const res_sel = await dao.selectAllPostings(DBUtil.postingTable)
+        if(res_sel.rows.length == 0) {
             resultFormat.errmsg = "there is no postings"
         } else {
             resultFormat.success = true;
-            resultFormat.posting_list = res.rows;
+            resultFormat.posting_list = res_sel.rows;
         }
         res.send(resultFormat);
-        mongoLogDAO.sendLog("", apiType.board.total_posting, 
+        await mongoLogDAO.sendLog("", apiType.board.total_posting, 
         "", JSON.stringify(resultFormat));
-    })
-    .catch(e=>{
-        resultFormat.errmsg = e;
-        res.send(resultFormat);
-        mongoLogDAO.sendLog("", apiType.board.total_posting, 
-        "", JSON.stringify(resultFormat));
-    })
+        return
+    } catch (e) {
+        console.log("error point : /board/total ")
+        console.log(e)
+    }
 });
 
 //get postings sorted by board index 
-router.get("/peer", (req,res) => {
+router.get("/peer", async(req,res) => {
     const boardIndex = req.query.index;
     const resultFormat = {
         "success": false,
@@ -215,8 +207,8 @@ router.get("/peer", (req,res) => {
         "posting_list": []
     }
     // TODO: 게시판 인덱스 존재하는지 확인, 단순히 보드 인덱스 정수에 알맞은 범위인지만 체크하면 되는거 아냐?
-    dao.selectWithBoardIndex(DBUtil.postingTable, boardIndex)
-    .then(res_selb => {
+    try {
+        const res_selb = await dao.selectWithBoardIndex(DBUtil.postingTable, boardIndex)
         if (res_selb.rows.length == 0) {
             resultFormat.errmsg = "there is no posting in this board"
         } else {
@@ -224,19 +216,17 @@ router.get("/peer", (req,res) => {
             resultFormat.posting_list = res_selb.rows
         }
         res.send(resultFormat);
-        mongoLogDAO.sendLog("", apiType.board.read_board_postings, 
+        await mongoLogDAO.sendLog("", apiType.board.read_board_postings, 
         JSON.stringify(boardIndex), JSON.stringify(resultFormat));
-    })
-    .catch (err => {
-        resultFormat.errmsg = err
-        res.send(resultFormat)
-        mongoLogDAO.sendLog("", apiType.board.read_board_postings, 
-        JSON.stringify(boardIndex), JSON.stringify(resultFormat));
-    })
+        return
+    } catch (e) {
+        console.log("error point : /board/peer ")
+        console.log(e)
+    }
 });
 
 //search lists by a title of posting
-router.post("/search", (req,res) => {
+router.post("/search", async(req,res) => {
     const reqWord = req.body.word;
     const resultFormat = {
         "success": false,
@@ -244,8 +234,8 @@ router.post("/search", (req,res) => {
         "posting_list": []
     }
     //TODO : 이스케이프 코드나 %일때 예외처리 필요 
-    dao.searchWithTitle(reqWord)
-    .then(res_sel => {
+    try {
+        const res_sel = await dao.searchWithTitle(reqWord)
         if (res_sel.rows.length == 0) {
             resultFormat.errmsg = "no results which contains this search word"
         } else {
@@ -253,15 +243,13 @@ router.post("/search", (req,res) => {
             resultFormat.posting_list = res_sel.rows;
         }
         res.send(resultFormat);
-        mongoLogDAO.sendLog("", apiType.board.search_title, 
+        await mongoLogDAO.sendLog("", apiType.board.search_title, 
         JSON.stringify(reqWord), JSON.stringify(resultFormat));
-    })
-    .catch(e => {
-        resultFormat.errmsg  = e;
-        res.send(resultFormat);
-        mongoLogDAO.sendLog("", apiType.board.search_title, 
-        JSON.stringify(reqWord), JSON.stringify(resultFormat));
-    })
+        return
+    } catch(e) {
+        console.log("error point : /board/search ")
+        console.log(e)
+    }
 });
 
 module.exports = router;
