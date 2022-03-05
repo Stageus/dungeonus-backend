@@ -3,7 +3,7 @@ const {DBInfo, DBUtil} = require("../databaseModule");
 
 // boardDAO.js
 module.exports.selectPostingWithpostingIndex = (postingIndex) => {
-    const text = 'select * from dungeonus_schema.posting' + 
+    const text = 'select * from ' + DBUtil.postingTable + 
         '   where posting_index = $1;';
     const values = [postingIndex];
 
@@ -12,10 +12,10 @@ module.exports.selectPostingWithpostingIndex = (postingIndex) => {
 
 module.exports.insertPosting = (id, title, content) => {
     const text = 'with checkid as (' + 
-        '   select * from dungeonus_schema.login' + 
+        '   select * from ' + DBUtil.loginTable + 
         '       where id = $1' + 
         ')' + 
-        'insert into dungeonus_schema.posting' + 
+        'insert into ' + DBUtil.postingTable + 
         '   values($1, $2, $3, CURRENT_TIMESTAMP);';
     const values = [id, title, content];
 
@@ -24,10 +24,10 @@ module.exports.insertPosting = (id, title, content) => {
 
 module.exports.updatePosting = (id, title, content, postingIndex) =>{
     const text = 'with checkid as (' + 
-        'select * from dungeonus_schema.login' + 
+        'select * from ' + DBUtil.loginTable + 
         '   where id = $1' + 
         ')' + 
-        'update dungeonus_schema.posting' + 
+        'update ' + DBUtil.postingTable + 
         '   set title = $2, content = $3' + 
         '   where posting_index = $4;';
     const values = [id, title, content, postingIndex];
@@ -37,10 +37,10 @@ module.exports.updatePosting = (id, title, content, postingIndex) =>{
 
 module.exports.deletePosting = (id, postingIndex)=>{
     const text = 'with checkid as (' + 
-        'select * from dungeonus_schema.login' + 
+        'select * from ' + DBUtil.loginTable + 
         '   where id = $1' + 
         ')' + 
-        'delete dungeonus_schema.posting' + 
+        'delete ' + DBUtil.postingTable + 
         '   where posting_index = $2;';
     const values = [id, postingIndex];
 
@@ -48,14 +48,15 @@ module.exports.deletePosting = (id, postingIndex)=>{
 }
 
 module.exports.selectAllPosting = ()=>{
-    const text = 'select * from dungeonus_schema.posting;';
+    const text = 'select * from ' + DBUtil.postingTable;
     const values = [];
 
     return client.query(text, values);
 }
 
 module.exports.selectAllBoardWithPostingIndex = (boardIndex)=>{
-    const text = 'select posting_index, id, title, date from dungeonus_schema.posting ' +
+    const text = 'select posting_index, id, title, date ' + 
+        'from ' + DBUtil.postingTable +
         'where board_index = $1;';
     const values = [boardIndex];
 
@@ -63,7 +64,8 @@ module.exports.selectAllBoardWithPostingIndex = (boardIndex)=>{
 }
 
 module.exports.selectPostingTitleLike = (word)=>{
-    const text = 'select posting_index, id, title, date from dungeonus_schema.posting ' + 
+    const text = 'select posting_index, id, title, date ' + 
+        'from ' + DBUtil.postingTable + 
         'where title like $1;';
     const values = ['%' + word + '%'];
 

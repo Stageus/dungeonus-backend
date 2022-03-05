@@ -4,10 +4,10 @@ const {DBInfo, DBUtil} = require("../databaseModule");
 // searchDAO.js
 module.exports.selectAllPostings = (id) => {
     const text = 'with checkid as (' + 
-        'select * from dungeonus_schema.login' + 
+        'select * from ' + DBUtil.loginTable + 
         '   where id = $1' + 
         ')' + 
-        'select dungeonus_schema.posting' + 
+        'select ' + DBUtil.postingTable + 
         '   where id = (select id from checkid);';
     const values = [id];
 
@@ -16,10 +16,10 @@ module.exports.selectAllPostings = (id) => {
 
 module.exports.selectAllComments = (id )=>{
     const text = 'with checkid as (' +
-        'select * from dungeonus_schema.login' +
+        'select * from ' + DBUtil.loginTable +
         '   where id = $1' + 
         ')' + 
-        'select dungeonus_schema.comment' + 
+        'select ' + DBUtil.commentTable + 
         '   where id = (select id from checkid);';
     const values = [id];
 
