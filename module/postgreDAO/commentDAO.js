@@ -2,31 +2,31 @@ const client = require("../connectClient.js");
 const {DBInfo, DBUtil} = require("../databaseModule");
 
 // commentDAO.js
-module.exports.selectCommentWithcommentIndex = (commentIndex) => {
-    const text = 'select * from dungeonus_schema.comment' + 
-        '   where comment_index = $1;';
-    const values = [commentIndex];
+module.exports.selectCommentWithPostingIndex = (postingIndex) => {
+    const text = 'select * from dungeonus_schema.posting' + 
+        '   where posting_index = $1;';
+    const values = [postingIndex];
 
     return client.query(text, values);
 }
 
-module.exports.insertComment = (id, postingIndex, title, content) => {
+module.exports.insertComment = (id, boardIndex, postingIndex, content) => {
     const text = 'with checkid as (' + 
         'select * from dungeonus_schema.login' + 
         '   where id = $1' + 
         '), postingExist as (' + 
         'select * from dungeonus_schema.posting' +
-        '   where posting_index = $2' + 
+        '   where posting_index = $3' + 
         ')' +
         'insert into dungeonus_schema.comment' + 
-        '   (id, posting_index, title, content)' + 
+        '   (id, board_index, posting_index, content, date)' + 
         '   values($1, $2, $3, $4, CURRENT_TIMESTAMP);';
-    const values = [id, postingIndex, title, content];
+    const values = [id, boardIndex, postingIndex, content];
 
     return client.query(text, values);
 }
 
-module.exports.updateComment = (id, postingIndex, title, content, commentIndex) =>{
+module.exports.updateComment = (id, postingIndex, content, commentIndex) =>{
     const text = 'with checkid as (' + 
         'select * from dungeonus_schema.login' + 
         '   where id = $1' + 
@@ -35,9 +35,9 @@ module.exports.updateComment = (id, postingIndex, title, content, commentIndex) 
         '   where posting_index = $2' + 
         ')' +
         'update dungeonus_schema.comment' + 
-        '   set title = $2, content = $3' + 
+        '   set content = $3' + 
         '   where comment_index = $4;';
-    const values = [id, postingIndex, title, content, commentIndex];
+    const values = [id, postingIndex, content, commentIndex];
 
     return client.query(text, values);
 }
@@ -50,7 +50,7 @@ module.exports.deleteComment = (id, postingIndex, commentIndex)=>{
         'select * from dungeonus_schema.posting' +
         '   where posting_index = $2' + 
         ')' +
-        'delete dungeonus_schema.comment' + 
+        'delete from dungeonus_schema.comment' + 
         '   where comment_index = $3;';
     const values = [id, postingIndex, commentIndex];
 
@@ -60,22 +60,6 @@ module.exports.deleteComment = (id, postingIndex, commentIndex)=>{
 module.exports.selectAllComment = ()=>{
     const text = 'select * from dungeonus_schema.comment;';
     const values = [];
-
-    return client.query(text, values);
-}
-
-module.exports.selectAllBoardWithCommentIndex = (boardIndex)=>{
-    const text = 'select comment_index, id, title, date from dungeonus_schema.comment ' +
-        'where board_index = $1;';
-    const values = [boardIndex];
-
-    return client.query(text, values);
-}
-
-module.exports.selectCommentTitleLike = (word)=>{
-    const text = 'select comment_index, id, title, date from dungeonus_schema.comment ' + 
-        'where title like $1;';
-    const values = ['%' + word + '%'];
 
     return client.query(text, values);
 }

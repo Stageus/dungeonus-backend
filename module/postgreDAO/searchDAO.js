@@ -7,19 +7,19 @@ module.exports.selectAllPostings = (id) => {
         'select * from dungeonus_schema.login' + 
         '   where id = $1' + 
         ')' + 
-        'select dungeonus_schema.posting' + 
+        'select * from dungeonus_schema.posting' + 
         '   where id = (select id from checkid);';
     const values = [id];
 
     return client.query(text, values);
 }
 
-module.exports.selectAllComments = (id )=>{
+module.exports.selectAllComments = (id)=>{
     const text = 'with checkid as (' +
         'select * from dungeonus_schema.login' +
         '   where id = $1' + 
         ')' + 
-        'select dungeonus_schema.comment' + 
+        'select * from dungeonus_schema.comment' + 
         '   where id = (select id from checkid);';
     const values = [id];
 

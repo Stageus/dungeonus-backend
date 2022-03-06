@@ -10,14 +10,16 @@ module.exports.selectPostingWithpostingIndex = (postingIndex) => {
     return client.query(text, values);
 }
 
-module.exports.insertPosting = (id, title, content) => {
+module.exports.insertPosting = (id, title, content, boardIndex) => {
     const text = 'with checkid as (' + 
         '   select * from dungeonus_schema.login' + 
         '       where id = $1' + 
         ')' + 
-        'insert into dungeonus_schema.posting' + 
-        '   values($1, $2, $3, CURRENT_TIMESTAMP);';
-    const values = [id, title, content];
+        'insert into dungeonus_schema.posting(' + 
+        'id, title, content, date, board_index'+
+        ')'+
+        '   values($1, $2, $3, CURRENT_TIMESTAMP, $4);';
+    const values = [id, title, content, boardIndex];
 
     return client.query(text, values);
 }
@@ -40,7 +42,7 @@ module.exports.deletePosting = (id, postingIndex)=>{
         'select * from dungeonus_schema.login' + 
         '   where id = $1' + 
         ')' + 
-        'delete dungeonus_schema.posting' + 
+        'delete from dungeonus_schema.posting' + 
         '   where posting_index = $2;';
     const values = [id, postingIndex];
 
