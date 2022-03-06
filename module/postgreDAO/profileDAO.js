@@ -11,10 +11,10 @@ module.exports.selectProfileWithId = (id) => {
 
 module.exports.updateProfile = (id, profile)=>{
     const text = 'with update_prof as (' +
-        'select * from ' + DBUtil.profile +
+        'select * from ' + DBUtil.profileTable +
         '   where id = $8' +
         ')' +
-        'update ' + DBUtil.profile + 
+        'update ' + DBUtil.profileTable + 
         '   set name=$1, generation=$2, course=$3,' +
         '   introduction=$4, github_link=$5, youtube_link=$6,' +
         '   insta_link=$7 WHERE id = (select id from update_prof)';

@@ -158,6 +158,13 @@ router.post("/", async (req,res)=>{
         "errmsg" : "empty",
     };
 
+    if(reqId == "" || reqName == "" || reqGeneration == ""){
+        console.log("Input id, name, genearation");
+        resultFormat.errmsg = "Input id, name, genearation";
+        res.send(resultFormat);
+        return;
+    }
+
     let res_isrtAcnt;
     try{
         res_isrtAcnt = await postgredao.insertLoginProfile(reqId, reqName, reqGeneration, reqPw);
@@ -258,6 +265,7 @@ router.post("/changepw", async (req,res)=>{
     let res_updateAcnt;
     try{
         res_updateAcnt = await postgredao.updateLogin(reqId, reqCurPw, reqAftPw);
+        console.log(res_updateAcnt);
     }
     catch(e){
         console.log("Exception in changepw router postgredao.updateLogin : ");

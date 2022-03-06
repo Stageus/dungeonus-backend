@@ -41,7 +41,7 @@ module.exports.updateLogin = (id, curpw, aftpw) =>{
         '       where id = $1 and pw = $2 ' +
         ')' +
         'update '+ DBUtil.loginTable +
-        'set pw = $3 where id = (select id from exist_id); ';
+        '   set pw = $3 where id = (select id from exist_id); ';
     const values = [id, curpw, aftpw];
 
     return client.query(text, values);
