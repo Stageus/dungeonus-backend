@@ -37,10 +37,10 @@ module.exports.selectAllAcnt = ()=>{
 
 module.exports.updateLogin = (id, curpw, aftpw) =>{
     const text = 'with exist_id as ( ' +
-        '   select * from dungeonus_schema.login ' +
+        '   select * from ' + DBUtil.loginTable +
         '       where id = $1 and pw = $2 ' +
         ')' +
-        'update dungeonus_schema.login ' +
+        'update '+ DBUtil.loginTable +
         'set pw = $3 where id = (select id from exist_id); ';
     const values = [id, curpw, aftpw];
 
