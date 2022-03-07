@@ -127,7 +127,7 @@ router.delete("/", async (req, res) =>{
     catch(e){
         console.log("Exception in delete router postgredao.deleteLoginProfileWithId loginTable :");
         console.log(e);
-        resultFormat.errmsg = e;
+        resultFormat.errmsg = e.message + " : " + e.detail;
         res.send(resultFormat);
         await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
@@ -135,7 +135,7 @@ router.delete("/", async (req, res) =>{
     }
     
     if (res_delAcnt.rowCount == 0) {
-        resultFormat.errmsg = "There is occured trouble in delete";
+        resultFormat.errmsg = "There is nothing to delete";
         res.send(resultFormat);
         await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
@@ -172,7 +172,7 @@ router.post("/", async (req,res)=>{
     catch(e){
         console.log("Exception in post router postgredao.insertLoginProfile :");
         console.log(e);
-        resultFormat.errmsg = e;
+        resultFormat.errmsg = e.message + " : " + e.detail;
         res.send(resultFormat);
         await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
@@ -214,7 +214,7 @@ router.get("/total", async (req, res) =>{
     catch(e){
         console.log("Exception in total router postgredao.selectAllAcnt : ");
         console.log(e);
-        resultFormat.errmsg = e;
+        resultFormat.errmsg = e.message + " : " + e.detail;
         res.send(resultFormat);
         await mongoLogDAO.sendLog("", apiType.account.total_accont,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
@@ -270,7 +270,7 @@ router.post("/changepw", async (req,res)=>{
     catch(e){
         console.log("Exception in changepw router postgredao.updateLogin : ");
         console.log(e);
-        resultFormat.errmsg = e;
+        resultFormat.errmsg = e.message + " : " + e.detail;
         res.send(resultFormat);
         await mongoLogDAO.sendLog(reqId, apiType.account.change_pw, 
             JSON.stringify(req.body), JSON.stringify(resultFormat));

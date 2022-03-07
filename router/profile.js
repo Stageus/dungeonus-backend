@@ -30,7 +30,7 @@ router.post("/", async (req,res)=>{
     catch(e){
         console.log("Exception in profile router dao.selectProfileWithId : ");
         console.log(e);
-        resultFormat.errmsg = e;
+        resultFormat.errmsg = e.message + " : " + e.detail;
         res.send(resultFormat);
         await mongoLogDAO.sendLog("", apiType.profile.show,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
@@ -78,7 +78,7 @@ router.put("/", async (req,res)=>{
     catch(e){
         console.log("Exception in put router postgredao.updateProfile :");
         console.log(e);
-        resultFormat.errmsg = e;
+        resultFormat.errmsg = e.message + " : " + e.detail;
         res.send(resultFormat);
         await mongoLogDAO.sendLog(reqId, apiType.account.delete_account,
             JSON.stringify(req.body), JSON.stringify(resultFormat));
