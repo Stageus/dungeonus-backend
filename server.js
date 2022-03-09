@@ -1,8 +1,8 @@
 const express = require("express");
 const https = require("https");
 const app = express();
-const httpPort = 8000;
-const httpsPort = 8443;
+const httpPort = 80;
+const httpsPort = 443;
 
 app.use(express.json());
 
