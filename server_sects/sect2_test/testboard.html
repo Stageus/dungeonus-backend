@@ -4,47 +4,29 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOARD API TEST</title>
+    <title>API TEST</title>
 </head>
 <body>
     <div>
-        <h2>게시글 작성 페이지 실험 칸이다.</h2>
+        <h3>게시판 기능</h3>
         <input type="text" id="boardIndex" placeholder="게시판 인덱스 정수로">
-        <input type="text" id="userId" placeholder="유저 아이디">
         <input type="text" id="title" placeholder="제목 작성">
         <input type="text" id="content" placeholder="내용 작성">
         <input type="button" value="게시글 작성" onclick="addPosting()">
-    </div>
-    <div>
-        <h2>여기는 게시글 삭제 기능을 보여준다.</h2>
-        <input type="text" id="postingIndex" placeholder="포스팅 인덱스 정수로">
-        <input type="button" value="게시글 삭제" onclick="delPosting()">
-    </div>
-    <div>
-        <h2>여기는 인덱스 번호를 이용, 특정 페이지를 보여준다.</h2>
-        <input type="text" id="showPosting" placeholder="포스팅 인덱스 정수로">
-        <input type="button" value="페이지 찾기" onclick="showPostingByIndex()">
-        <div id="postingInfo"></div>
-    </div>
-    <div>
-        <h3>게시물 수정 기능</h3>
-        <input type="text" id="usePostingIndex" placeholder="바꿀 포스팅 인덱스">
         <input type="text" id="newTitle" placeholder="새로운 제목 작성">
         <input type="text" id="newContent" placeholder="새로운 내용 작성">
+        <input type="text" id="postingIndex" placeholder="포스팅 인덱스">
         <input type="button" value="게시물 수정" onclick="fixPosting()">
-    </div>
-    <div>
-        <h2>여기는 존재하는 모든 페이지를 보여준다.</h2>
+        <input type="button" value="게시글 삭제" onclick="delPosting()">
+        <input type="button" value="페이지 찾기" onclick="showPostingByIndex()">
         <input type="button" value="게시글 모두 불러오기" onclick="showAllPosting()">
         <input type="text" id="boardIndexforSearch" placeholder="게시판 인덱스 정수로">
         <input type="button" value="게시판별로 모두 불러오기" onclick="showByBoardIndex()">
     </div>
     <div>
         <h3>댓글 제대로 날아오남</h3>
-        <input type="text" id="userIdforC" placeholder="댓글용 유저 아이디">
         <input type="text" id="contentforC" placeholder="댓글 내용">
         <input type="text" id="newContentforC" placeholder="댓글 수정용 내용">
-        <input type="text" id="boardIndexforC" placeholder="댓글용 게시판 인덱스">
         <input type="text" id="postingIndexforC" placeholder="댓글용 포스팅 인덱스">
         <input type="text" id="commentIndexforC" placeholder="댓글 인덱스">
         <input type="button" value="포스팅별로 댓글 불러오기" onclick="showComment()">
@@ -73,7 +55,6 @@
                     "Content-Type": "application/json"
                 },
                 "body": JSON.stringify({
-                    "id": userId.value,
                     "title": title.value,
                     "content": content.value,
                     "boardIndex": boardIndex.value
@@ -92,7 +73,6 @@
                 "Content-Type": "application/json"
             },
             "body": JSON.stringify({
-                "id": "ji", //api 요청한 사람의 아이디
                 "postingIndex": postingIndex.value
             })
         })
@@ -103,23 +83,12 @@
     }
 
     const showPostingByIndex = () => {
-        const parameter = showPosting.value;
+        const parameter = postingIndex.value;
         const url = "/board?index="+ parameter.toString(); 
         fetch(url)
         .then(response => response.json())
         .then(data => {
             console.log(data)
-            if (data.success == false) {
-                console.log(data.errmsg)
-            } else {
-                const titleBox = document.createElement("div");
-                const contentBox = document.createElement("div");
-                titleBox.innerHTML = data.posting[0].title;
-                contentBox.innerHTML = data.posting[0].content
-                const postingBox = document.getElementById("postingInfo");
-                postingBox.appendChild(titleBox);
-                postingBox.appendChild(contentBox);
-            }
         })
     }
 
@@ -130,8 +99,7 @@
                     "Content-Type": "application/json"
                 },
                 "body": JSON.stringify({
-                    "id": "ji", //api 요청한 사람의 아이디 
-                    "postingIndex": usePostingIndex.value,
+                    "postingIndex": postingIndex.value,
                     "title": newTitle.value,
                     "content": newContent.value
                 })
@@ -193,10 +161,8 @@
                     "Content-Type": "application/json"
                 },
                 "body": JSON.stringify({
-                    "id": userIdforC.value,
                     "content": contentforC.value,
-                    "boardIndex": boardIndexforC.value,
-                    "postingIndex": postingIndexforC.value,
+                    "postingIndex": postingIndexforC.value
                 })
             })
             .then(response => response.json())
@@ -214,9 +180,7 @@
             "headers": {
                     "Content-Type": "application/json"
                 },
-                "body": JSON.stringify({
-                    "id": userIdforC.value, //api 요청한 사람의 아이디 
-                    "postingIndex": postingIndexforC.value,
+                "body": JSON.stringify({ 
                     "commentIndex": commentIndexforC.value,
                     "newContent": newContentforC.value
                 })
@@ -237,8 +201,6 @@
                 "Content-Type": "application/json"
             },
             "body": JSON.stringify({
-                "id": userIdforC.value,
-                "postingIndex": postingIndexforC.value,
                 "commentIndex": commentIndexforC.value
             })
         })

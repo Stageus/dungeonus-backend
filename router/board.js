@@ -39,7 +39,6 @@ router.get("/", async (req,res) => {
 
 //write a posting 
 router.post("/", async(req,res) => {
-    const reqId = req.body.id 
     const reqTitle = req.body.title 
     const reqContent = req.body.content 
     const reqBoardIndex = req.body.boardIndex
@@ -57,21 +56,29 @@ router.post("/", async(req,res) => {
 
     try {
         //TODO: input 적합한지 검사 
-        const res_ins = await postgredao.insertPosting(reqId, reqTitle, reqContent, reqBoardIndex)
-        resultFormat.success = true;
+        const sessionWrap = await msDAO.findSessionWithSessionId(req.cookies.sessionId);
+        const reqUserId = JSON.parse(sessionWrap[0].session).user.id
+        const res_ins = await postgredao.insertPosting(reqUserId, reqTitle, reqContent, reqBoardIndex)
+        if (res_ins.rowCount == 1) {
+            resultFormat.success = true;
+        } else { 
+            resultFormat.errmsg = res_ins.detail
+        }
         res.send(resultFormat);
-        await mongoLogDAO.sendLog(reqId, apiType.board.create_posting, 
+        await mongoLogDAO.sendLog(reqUserId, apiType.board.create_posting, 
         JSON.stringify(req.body), JSON.stringify(resultFormat))
     } catch (e) {
         console.log("error point : post router in board API")
         console.log(e)
+        resultFormat.errmsg = e.message + " : " + e.detail;
+        res.send(resultFormat);
+        await mongoLogDAO.sendLog(reqUserId, apiType.board.create_posting, 
+        JSON.stringify(req.body), JSON.stringify(resultFormat))
     }
 });
 
 //modify a posting 
 router.put("/", async(req,res) => { 
-    let reqUserId; //  who requested this API
-    const reqId = req.body.id;
     const reqTitle = req.body.title;
     const reqContent = req.body.content;
     const reqIndex = req.body.postingIndex;
@@ -86,18 +93,27 @@ router.put("/", async(req,res) => {
         res.send(resultFormat);
         return;
     }
+
+    
     try {
         const sessionWrap = await msDAO.findSessionWithSessionId(req.cookies.sessionId);
-        reqUserId = JSON.parse(sessionWrap[0].session).user.id
-        if (reqUserId != reqId) {
-            resultFormat.errmsg = "you are not a posting writer, wrong ID"
-            res.send(resultFormat);
-            await mongoLogDAO.sendLog(reqUserId, apiType.board.delete_posting, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-            return
+        const reqUserId = JSON.parse(sessionWrap[0].session).user.id;
+        const res_upd = await postgredao.updatePosting(reqUserId, reqTitle, reqContent, reqIndex);
+        if (res_upd.rowCount == 1) {
+            resultFormat.success = true;
+        } else {   
+            const res_sel_id = await postgredao.idExists(reqUserId)
+            if (res_sel_id.rowCount == 0) {
+                resultFormat.errmsg = "no ID in DB"
+            } else {
+                const res_sel_pi = await postgredao.postingIndexExists(reqIndex)
+                if (res_sel_pi.rowCount == 0) {
+                    resultFormat.errmsg = "no posting index in DB "
+                } else {
+                    resultFormat.errmsg = "not the posting writer"
+                }
+            } 
         }
-        const res_upd = await postgredao.updatePosting(reqId, reqTitle, reqContent, reqIndex)
-        resultFormat.success = true;
         res.send(resultFormat);
         await mongoLogDAO.sendLog(reqUserId, apiType.board.update_posting, 
         JSON.stringify(req.body), JSON.stringify(resultFormat))
@@ -109,8 +125,6 @@ router.put("/", async(req,res) => {
 
 //delete a posting
 router.delete("/", async(req,res) => {
-    let reqUserId;
-    const reqId = req.body.id;
     const reqIndex = req.body.postingIndex;
     const resultFormat = {
         "success" : false,
@@ -125,16 +139,23 @@ router.delete("/", async(req,res) => {
 
     try {
         const sessionWrap = await msDAO.findSessionWithSessionId(req.cookies.sessionId);
-        reqUserId = JSON.parse(sessionWrap[0].session).user.id
-        if (reqUserId != reqId) {
-            resultFormat.errmsg = "you are not a posting writer, wrong ID"
-            res.send(resultFormat);
-            await mongoLogDAO.sendLog(reqUserId, apiType.board.delete_posting, 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
-            return
+        const reqUserId = JSON.parse(sessionWrap[0].session).user.id
+        const res_del = await postgredao.deletePosting(reqUserId, reqIndex)
+        if (res_del.rowCount == 1) {
+            resultFormat.success = true;
+        } else {
+            const res_sel_id = await postgredao.idExists(reqUserId)
+            if (res_sel_id.rowCount == 0) {
+                resultFormat.errmsg = "no ID in DB"
+            } else {
+                const res_sel_pi = await postgredao.postingIndexExists(reqIndex)
+                if (res_sel_pi.rowCount == 0) {
+                    resultFormat.errmsg = "no posting index in DB "
+                } else {
+                    resultFormat.errmsg = "not the posting writer"
+                }
+            } 
         }
-        const res_del = await postgredao.deletePosting(reqId, reqIndex)
-        resultFormat.success = true;
         res.send(resultFormat);
         await mongoLogDAO.sendLog(reqUserId, apiType.board.delete_posting, 
         JSON.stringify(req.body), JSON.stringify(resultFormat))
