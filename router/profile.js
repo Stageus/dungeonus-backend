@@ -61,7 +61,7 @@ router.put("/", async (req,res)=>{
         "success" : false,
         "errmsg" : "empty",
     };
-    console.log(req.cookies);
+    
     if((await checkSession(req.cookies.sessionId)) == false){
         resultFormat.errmsg = "Session is not valid";
         res.send(resultFormat);

@@ -65,8 +65,6 @@ router.post("/login", async (req,res) =>{
     };
     resultFormat.session_id = req.session.id;
     res.cookie(cookieKeyName, req.session.id);
-    console.log(req.session.id);
-    console.log(req.session.user);
     res.send(resultFormat);
     await mongoLogDAO.sendLog(reqId, apiType.account.login,
         JSON.stringify(req.body), JSON.stringify(resultFormat));
@@ -142,7 +140,6 @@ router.post("/", async (req,res)=>{
     };
 
     if(reqId == "" || reqName == "" || reqGeneration == ""){
-        console.log("Input id, name, genearation");
         resultFormat.errmsg = "Input id, name, genearation";
         res.send(resultFormat);
         return;
@@ -248,7 +245,6 @@ router.post("/changepw", async (req,res)=>{
     let res_updateAcnt;
     try{
         res_updateAcnt = await postgredao.updateLogin(reqId, reqCurPw, reqAftPw);
-        console.log(res_updateAcnt);
     }
     catch(e){
         console.log("Exception in changepw router postgredao.updateLogin : ");
@@ -323,7 +319,6 @@ router.get("/autologin", async (req, res)=>{
             };
             resultFormat.session_id = req.session.id;
             res.cookie(cookieKeyName, req.session.id);
-            console.log("Changed session id : " + req.session.id);
 
             resultFormat.success = true;
             res.send(resultFormat);
