@@ -1,29 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const app = express();
 const postgredao = require("../module/postgreDAO/accountDAO");
 const sessionModule = require("../module/mongoDAO/sessionModule");
 const apiType = require("../module/mongoDAO/mongoLog_apiInfo");
-const session = require('express-session');
 const mongoStore = require("../module/mongoDAO/mongoSessionStore");
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
 const mongoLogDAO = require("../module/mongoDAO/mongoLogDAO");
 const checkSession = require("../module/mongoDAO/checkSessionModule");
 
-app.use(cookieParser());
-app.use(bodyParser.urlencoded({extended: false}));
-
-// session & cookie
-const sessionObj = session({
-    secret: 'test string', // TODO: change secret string
-    resave: false, 
-    saveUninitialized: false, 
-    store: mongoStore,
-    cookie: { secure: true,},
-    reapInterval: 100,
-});
-app.use(sessionObj);
 const cookieKeyName = 'sessionId';
 
 // router
@@ -442,6 +425,4 @@ router.post("/test", async (req,res)=>{
             JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
-app.use('/', router);
-
-module.exports = app;
+module.exports = router;

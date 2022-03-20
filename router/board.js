@@ -1,15 +1,11 @@
 const express = require("express");
 const router = express.Router(); 
-const app = express();
 const path = require("path"); //
 const postgredao = require("../module/postgreDAO/boardDAO"); //
 const mongoLogDAO = require("../module/mongoDAO/mongoLogDAO");
 const apiType = require("../module/mongoDAO/mongoLog_apiInfo"); //
 const checkSession = require("../module/mongoDAO/checkSessionModule");
 const msDAO = require("../module/mongoDAO/mongoSessionDAO")
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
-
 
 //get a posting by posting Index
 router.get("/", async (req,res) => {
@@ -243,6 +239,4 @@ router.post("/search", async(req,res) => {
     }
 });
 
-app.use('/', router);
-
-module.exports = app;
+module.exports = router;

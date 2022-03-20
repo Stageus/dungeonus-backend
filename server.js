@@ -3,8 +3,14 @@ const https = require("https");
 const app = express();
 const httpPort = 80;
 const httpsPort = 443;
+const sessionObj = require("./module/mongoDAO/sessionObj");
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 
 app.use(express.json());
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(sessionObj);
 
 // const options ={
 //        key: fs.readFileSync(path.join(__dirname, "private.pem")),

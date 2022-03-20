@@ -1,12 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const app = express();
 const postgredao = require("../module/postgreDAO/profileDAO");
 const mongoLogDAO = require("../module/mongoDAO/mongoLogDAO");
 const apiType = require("../module/mongoDAO/mongoLog_apiInfo");
 const checkSession = require("../module/mongoDAO/checkSessionModule");
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
 
 router.post("/", async (req,res)=>{
     const reqId = req.body.id;
@@ -99,6 +96,4 @@ router.put("/", async (req,res)=>{
             JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
-app.use('/', router);
-
-module.exports = app;
+module.exports = router;
