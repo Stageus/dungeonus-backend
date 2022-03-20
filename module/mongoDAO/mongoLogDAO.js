@@ -1,4 +1,4 @@
-const LogModel = require('../module/mongoLogModel');
+const LogModel = require('./mongoLogModel');
 
 module.exports.sendLog = async (id, api, req, res) => {
     let result = false;

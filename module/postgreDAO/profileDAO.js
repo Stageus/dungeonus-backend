@@ -1,5 +1,5 @@
-const client = require("../connectClient.js");
-const {DBInfo, DBUtil} = require("../databaseModule");
+const client = require("./Client");
+const {DBInfo, DBUtil} = require("./postgresDBModule");
 
 // profile.js
 module.exports.selectProfileWithId = (id) => {

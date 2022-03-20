@@ -1,4 +1,4 @@
-const SessionModel = require('../module/mongoSessionModel');
+const SessionModel = require('./mongoSessionModel');
 
 module.exports.findSessionWithSessionId = (sessionId) => {
     return SessionModel.find({ _id: sessionId });

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const accountInfo = require('../accountData/mongodbAccountInfo');
+const accountInfo = require('../../accountData/mongodbAccountInfo');
 const { DBInfo } = require('./mongoDBModule');
 
 const connect = () => {

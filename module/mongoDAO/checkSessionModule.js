@@ -1,4 +1,4 @@
-const sessionDAO = require("../module/mongoSessionDAO");
+const sessionDAO = require("./mongoSessionDAO");
 
 module.exports = async (sessionId) => {
     let valid = false;

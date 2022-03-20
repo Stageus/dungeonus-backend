@@ -1,3 +1,5 @@
+// In log, name of the place where the API was called
+
 const APIInfo = {
     account: {
         login: "post_login",

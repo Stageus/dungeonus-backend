@@ -1,6 +1,6 @@
 const MongoStore = require('connect-mongo');
-const accountInfo = require('../accountData/mongodbAccountInfo');
-const { DBInfo } = require('../module/mongoDBModule');
+const accountInfo = require('../../accountData/mongodbAccountInfo');
+const { DBInfo } = require('./mongoDBModule');
 
 const mongoStore = MongoStore.create({
     mongoUrl: 'mongodb+srv://'

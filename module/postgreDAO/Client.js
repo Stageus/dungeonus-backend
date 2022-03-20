@@ -1,5 +1,5 @@
 const {Client} = require('pg');
-const accountInfo = require('../accountData/postgresqlAccountInfo');
+const accountInfo = require('../../accountData/postgresqlAccountInfo');
 
 const client = new Client({
     user: accountInfo.user,

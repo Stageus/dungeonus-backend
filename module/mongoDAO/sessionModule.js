@@ -1,4 +1,4 @@
-const sessionDAO = require("../module/mongoSessionDAO");
+const sessionDAO = require("./mongoSessionDAO");
 
 // check session with user id return length
 module.exports.checkSessionWithUserIdRetLen = async (id) => {

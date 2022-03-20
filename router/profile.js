@@ -2,9 +2,9 @@ const express = require("express");
 const router = express.Router();
 const app = express();
 const postgredao = require("../module/postgreDAO/profileDAO");
-const mongoLogDAO = require("../module/mongoLogDAO");
-const apiType = require("../module/apiTypeInfo");
-const checkSession = require("../module/checkSessionModule");
+const mongoLogDAO = require("../module/mongoDAO/mongoLogDAO");
+const apiType = require("../module/mongoDAO/mongoLog_apiInfo");
+const checkSession = require("../module/mongoDAO/checkSessionModule");
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
