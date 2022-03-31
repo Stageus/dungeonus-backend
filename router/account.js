@@ -409,11 +409,11 @@ router.get("/refreshsession", async(req,res)=>{
 // router to only test
 router.post("/test", async (req,res)=>{
     const resultFormat = {
-        "success" : false,
+        "success" : true,
         "errmsg" : "test",
     };
 
-    console.log(req.sessionID);
+    console.log("mongoLog Test");
 
     res.send(resultFormat);
     await mongoLogDAO.sendLog("testLog", "test", 

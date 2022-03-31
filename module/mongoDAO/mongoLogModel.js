@@ -3,11 +3,12 @@ const accountInfo = require('../../accountData/mongodbAccountInfo');
 const { DBInfo } = require('./mongoDBModule');
 
 const connect = () => {
-    return mongoose.createConnection('mongodb+srv://'
+    return mongoose.createConnection('mongodb://'
     +accountInfo.user+':'
     +accountInfo.password+'@'
-    + DBInfo.mongoClusterName +'.2wk2k.mongodb.net/'
-    + DBInfo.mongoDatabases.logDB.dbName +'?retryWrites=true&w=majority', function (err) {
+    + 'localhost:27017'
+    + '/' + DBInfo.mongoDatabases.logDB.dbName
+    , function (err) {
         if (err) {
             console.error('mongodb connection error', err);
         }
