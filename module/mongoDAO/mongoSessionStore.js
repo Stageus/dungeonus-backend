@@ -3,11 +3,11 @@ const accountInfo = require('../../accountData/mongodbAccountInfo');
 const { DBInfo } = require('./mongoDBModule');
 
 const mongoStore = MongoStore.create({
-    mongoUrl: 'mongodb+srv://'
+    mongoUrl: 'mongodb://'
         +accountInfo.user+':'
         +accountInfo.password+'@'
-        + DBInfo.mongoClusterName +'.2wk2k.mongodb.net/'
-        + DBInfo.mongoDatabases.sessionDB.dbName +'?retryWrites=true&w=majority',
+        + DBInfo.mongoServerIP + ':' + DBInfo.mongoServerPort
+        + '/' + DBInfo.mongoDatabases.sessionDB.dbName,
     autoRemove: 'interval',
     ttl: 3600,
 });

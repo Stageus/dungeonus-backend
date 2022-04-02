@@ -1,5 +1,7 @@
 const DBInfo = {
     mongoClusterName : "dungeonus-cluster",
+    mongoServerIP : 'localhost',
+    mongoServerPort : '27017',
     mongoDatabases : {
         sessionDB : {
             dbName : "session-store",

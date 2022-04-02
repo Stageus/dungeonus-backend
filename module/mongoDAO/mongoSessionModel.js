@@ -6,7 +6,7 @@ const connect = () => {
     return mongoose.createConnection('mongodb://'
     +accountInfo.user+':'
     +accountInfo.password+'@'
-    + 'localhost:27017'
+    + DBInfo.mongoServerIP + ':' + DBInfo.mongoServerPort
     + '/' + DBInfo.mongoDatabases.sessionDB.dbName
     , function (err) {
         if (err) {

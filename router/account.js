@@ -6,6 +6,7 @@ const apiType = require("../module/mongoDAO/mongoLog_apiInfo");
 const mongoStore = require("../module/mongoDAO/mongoSessionStore");
 const mongoLogDAO = require("../module/mongoDAO/mongoLogDAO");
 const checkSession = require("../module/mongoDAO/checkSessionModule");
+const sessionObj = require("../module/mongoDAO/sessionObj");
 
 const cookieKeyName = 'sessionId';
 
