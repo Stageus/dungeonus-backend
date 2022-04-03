@@ -19,3 +19,16 @@ module.exports.sendLog = async (id, api, req, res) => {
     result = true;
     return result;
 };
+
+module.exports.findAllLogs = async () => {
+    let  result;
+
+    try{
+        result = await LogModel.find();
+    }
+    catch(e){
+        console.log(e);
+    }
+
+    return result;
+}

@@ -19,3 +19,7 @@ module.exports.deleteSessionWithUserId = (id)=>{
     return SessionModel.deleteMany()
         .regex('session', '"id":"' + id + '"');
 }
+
+module.exports.findAllSessions = () => {
+    return SessionModel.find();
+}

@@ -8,7 +8,7 @@ const mongoStore = MongoStore.create({
         +accountInfo.password+'@'
         + DBInfo.mongoServerIP + ':' + DBInfo.mongoServerPort
         + '/' + DBInfo.mongoDatabases.sessionDB.dbName,
-    autoRemove: 'interval',
+    autoRemove: 'native',
     ttl: 3600,
 });
 

@@ -1,3 +1,4 @@
+const { createCipheriv } = require("crypto");
 const sessionDAO = require("./mongoSessionDAO");
 
 // check session with user id return length
@@ -45,8 +46,31 @@ module.exports.checkSessionWithSessionIdRetLen = async (id) => {
 // delete session with user id return nothing
 module.exports.deleteSessionWithUserIdRetNo = async (id) =>{
     let deleteSession;
-    deleteSession = await sessionDAO.deleteSessionWithUserId(id);
+
+    try{
+        deleteSession = await sessionDAO.deleteSessionWithUserId(id);
+    }
+    catch(e){
+        console.log(e);
+        return false;
+    }
 
     console.log("sessionModule.js delete session :");
     console.log(deleteSession);
+    return true;
+}
+
+// view current exist sessions
+module.exports.findAllSessions = async () => {
+    let findSession;
+
+    try{
+        findSession = await sessionDAO.findAllSessions();
+    }
+    catch(e){
+        console.log(e);
+        return null;
+    }
+    
+    return findSession;
 }

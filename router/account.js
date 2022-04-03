@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const postgredao = require("../module/postgreDAO/accountDAO");
-const sessionModule = require("../module/mongoDAO/sessionModule");
 const apiType = require("../module/mongoDAO/mongoLog_apiInfo");
-const mongoStore = require("../module/mongoDAO/mongoSessionStore");
 const mongoLogDAO = require("../module/mongoDAO/mongoLogDAO");
+const mongoStore = require("../module/mongoDAO/mongoSessionStore");
+const sessionModule = require("../module/mongoDAO/sessionModule");
 const checkSession = require("../module/mongoDAO/checkSessionModule");
 const sessionObj = require("../module/mongoDAO/sessionObj");
 
@@ -412,13 +412,18 @@ router.post("/test", async (req,res)=>{
     const resultFormat = {
         "success" : true,
         "errmsg" : "test",
+        "mongo data" : "",
+        "current time" : new Date().toISOString(),
+        "subtract" : null,
     };
 
-    console.log("mongoLog Test");
+    const test = await sessionModule.findAllSessions();
+    resultFormat["mongo data"] = test;
 
     res.send(resultFormat);
-    await mongoLogDAO.sendLog("testLog", "test", 
-            JSON.stringify(req.body), JSON.stringify(resultFormat));
+
+    // await mongoLogDAO.sendLog("testLog", "test", 
+    //         JSON.stringify(req.body), JSON.stringify(resultFormat));
 });
 
 module.exports = router;
